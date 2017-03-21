@@ -15,7 +15,10 @@ import com.apsit.toll.DirectionService;
 import com.apsit.toll.R;
 import com.apsit.toll.pojo.autocomplete.Addresses;
 import com.apsit.toll.pojo.directions.Data;
+import com.apsit.toll.pojo.directions.Leg;
 import com.apsit.toll.pojo.directions.Overview_polyline;
+import com.apsit.toll.pojo.directions.Route;
+import com.apsit.toll.pojo.directions.Step;
 import com.apsit.toll.view.GooglePlaceAutocomplete;
 import com.apsit.toll.view.activity.JholActivity;
 import com.arlib.floatingsearchview.FloatingSearchView;
@@ -40,6 +43,12 @@ import java.util.Locale;
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import butterknife.Unbinder;
+import io.reactivex.Observable;
+import io.reactivex.ObservableEmitter;
+import io.reactivex.ObservableOnSubscribe;
+import io.reactivex.android.schedulers.AndroidSchedulers;
+import io.reactivex.functions.Consumer;
+import io.reactivex.schedulers.Schedulers;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
@@ -67,6 +76,7 @@ public class SelectFragment extends Fragment implements OnMapReadyCallback{
     Marker sourceMarker, destinationMarker;
 
     private LatLng sourcelatlng, destinationlatlng;
+    private PolylineOptions polylineOptions;
 
     @Nullable
     @Override
@@ -210,36 +220,52 @@ public class SelectFragment extends Fragment implements OnMapReadyCallback{
 
     private void getTolls() {
         if (sourcelatlng != null && destinationlatlng != null) {
+            mMap.clear();
             directionService = retrofitDirection.create(DirectionService.class);
             //https://maps.googleapis.com/maps/api/directions/json?origin=19.181474,72.980297&destination=19.183904,72.965463&key=AIzaSyBrHlkV3P6-dFmMo_0BXkx_jmv5-ljdVL0
             directionService.getData(sourcelatlng.latitude + "," + sourcelatlng.longitude, destinationlatlng.latitude + "," + destinationlatlng.longitude, "AIzaSyBrHlkV3P6-dFmMo_0BXkx_jmv5-ljdVL0").enqueue(new Callback<Data>() {
                 @Override
-                public void onResponse(Call<Data> call, Response<Data> response) {
+                public void onResponse(Call<Data> call, final Response<Data> response) {
                     if (response.isSuccessful()) {
-                        Data data = response.body();
-                        Overview_polyline overview_polyline = data.getRoutes().get(0).getOverview_polyline();
-                        String encodedPolyline = overview_polyline.getPoints();
-                        List<LatLng> list = PolyUtil.decode(encodedPolyline);
-                        mMap.addPolyline(new PolylineOptions()
-                                .addAll(list)
-                                .width(25)
-                                .color(Color.BLUE)
-                                .geodesic(true));
 
-                        List<LatLng> posList = new ArrayList<>();
-
-                        posList.add(new LatLng(19.261018, 72.969054));
-                        posList.add(new LatLng(19.257038, 72.970665));
-                        posList.add(new LatLng(19.251352, 72.972971));
-                        posList.add(new LatLng(19.217018, 72.978022));
-
-                        for(LatLng pos: posList) {
-                            if (PolyUtil.isLocationOnPath(pos, list, true, 100.0)) {
-                                mMap.addMarker(new MarkerOptions().position(new LatLng(pos.latitude, pos.longitude)));
-                            } else {
-
+                        Observable.create(new ObservableOnSubscribe<PolylineOptions>() {
+                            @Override
+                            public void subscribe(ObservableEmitter<PolylineOptions> e) throws Exception {
+                                PolylineOptions options = new PolylineOptions()
+                                        .width(20)
+                                        .color(Color.BLUE)
+                                        .geodesic(true);
+                                for(Route route: response.body().getRoutes()) {
+                                    for(Leg leg: route.getLegs()) {
+                                        for(Step step : leg.getSteps()) {
+                                            options.addAll(PolyUtil.decode(step.getPolyline().getPoints()));
+                                        }
+                                    }
+                                }
+                                e.onNext(options);
                             }
-                        }
+                        }).subscribeOn(Schedulers.computation()).observeOn(AndroidSchedulers.mainThread()).subscribe(new Consumer<PolylineOptions>() {
+                            @Override
+                            public void accept(PolylineOptions options) throws Exception {
+                                polylineOptions = options;
+                                mMap.addPolyline(options);
+                            }
+                        });
+
+//                        List<LatLng> posList = new ArrayList<>();
+
+//                        posList.add(new LatLng(19.261018, 72.969054));
+//                        posList.add(new LatLng(19.257038, 72.970665));
+//                        posList.add(new LatLng(19.251352, 72.972971));
+//                        posList.add(new LatLng(19.217018, 72.978022));
+
+//                        for(LatLng pos: posList) {
+//                            if (PolyUtil.isLocationOnPath(pos, list, true, 100.0)) {
+//                                mMap.addMarker(new MarkerOptions().position(new LatLng(pos.latitude, pos.longitude)));
+//                            } else {
+//
+//                            }
+//                        }
                     }
                 }
 
