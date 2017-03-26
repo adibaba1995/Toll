@@ -34,16 +34,20 @@ import com.apsit.toll.domain.model.DirectionData;
 import com.apsit.toll.domain.model.MinMaxLatLong;
 import com.apsit.toll.presentation.application.TollApplication;
 import com.apsit.toll.presentation.presenter.DisplayMapPresenter;
+import com.apsit.toll.presentation.utility.Utility;
 import com.apsit.toll.presentation.view.DisplayMapView;
 import com.apsit.toll.presentation.view.activity.DirectionActivity;
 import com.apsit.toll.presentation.view.activity.MainActivity;
+import com.apsit.toll.presentation.view.activity.TollInfoActivity;
 import com.apsit.toll.presentation.view.adapter.TollRecyclerViewAdapter;
+import com.apsit.toll.presentation.view.viewmodel.TollCarrier;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.model.Polyline;
 import com.google.android.gms.maps.model.PolylineOptions;
@@ -54,6 +58,7 @@ import com.karumi.dexter.PermissionToken;
 import com.karumi.dexter.listener.PermissionGrantedResponse;
 import com.karumi.dexter.listener.PermissionRequest;
 import com.karumi.dexter.listener.multi.MultiplePermissionsListener;
+import com.sothree.slidinguppanel.ScrollableViewHelper;
 import com.sothree.slidinguppanel.SlidingUpPanelLayout;
 
 import java.util.ArrayList;
@@ -97,6 +102,10 @@ public class DisplayMapFragment extends Fragment implements OnMapReadyCallback, 
     RecyclerView tollList;
     @BindView(R.id.sliding_layout)
     SlidingUpPanelLayout slidingUpPanelLayout;
+    @BindView(R.id.dragView)
+    View dragView;
+    @BindView(R.id.total)
+    TextView total;
 
     @Inject
     DisplayMapPresenter presenter;
@@ -106,6 +115,7 @@ public class DisplayMapFragment extends Fragment implements OnMapReadyCallback, 
     private GoogleMap mMap;
     private Polyline previousPolyline;
     private Map<String, MinMaxLatLong> rectangles;
+    private Map<String, Toll> tolls;
 
     private LocationManager locationManager;
     private Criteria criteria;
@@ -113,6 +123,7 @@ public class DisplayMapFragment extends Fragment implements OnMapReadyCallback, 
     private TollRecyclerViewAdapter adapter;
     private boolean zoomToLocationClick = false;
     private ArrayList<Toll> tollsList;
+    private double totalPrice;
 
     @Override
     public void onResume() {
@@ -125,6 +136,7 @@ public class DisplayMapFragment extends Fragment implements OnMapReadyCallback, 
         super.onCreate(savedInstanceState);
         ((TollApplication) getActivity().getApplication()).createDisplayMapComponent().inject(this);
         rectangles = new HashMap<>();
+        tolls = new HashMap<>();
         tollsList = new ArrayList<>();
     }
 
@@ -164,6 +176,16 @@ public class DisplayMapFragment extends Fragment implements OnMapReadyCallback, 
         directionfab.setOnClickListener(this);
         locationFab.setOnClickListener(this);
         adapter = new TollRecyclerViewAdapter(tollsList, getActivity());
+        adapter.setCallback(new TollRecyclerViewAdapter.Callback() {
+            @Override
+            public void checkChanged(Toll toll, boolean isChecked) {
+                if (isChecked)
+                    totalPrice += toll.getTwo_axle();
+                else
+                    totalPrice -= toll.getTwo_axle();
+                total.setText("Total:  ₹ " + Utility.formatFloat(totalPrice));
+            }
+        });
         tollList.setLayoutManager(new LinearLayoutManager(getActivity()));
         tollList.addItemDecoration(new DividerItemDecoration(getActivity(), DividerItemDecoration.VERTICAL));
         tollList.setAdapter(adapter);
@@ -185,6 +207,8 @@ public class DisplayMapFragment extends Fragment implements OnMapReadyCallback, 
                 }
             }
         });
+        slidingUpPanelLayout.setPanelHeight(0);
+        slidingUpPanelLayout.setScrollableViewHelper(new NestedScrollableViewHelper());
     }
 
     @Override
@@ -199,6 +223,14 @@ public class DisplayMapFragment extends Fragment implements OnMapReadyCallback, 
     public void onMapReady(GoogleMap googleMap) {
         mMap = googleMap;
         mMap.setOnPolylineClickListener(this);
+        mMap.setOnInfoWindowClickListener(new GoogleMap.OnInfoWindowClickListener() {
+            @Override
+            public void onInfoWindowClick(Marker marker) {
+                Intent intent = new Intent(getActivity(), TollInfoActivity.class);
+                intent.putExtra(TollInfoActivity.EXTRA_TOLL, tolls.get(marker.getId()));
+                startActivity(intent);
+            }
+        });
         checkLocationPermission();
     }
 
@@ -277,33 +309,38 @@ public class DisplayMapFragment extends Fragment implements OnMapReadyCallback, 
     @Override
     public void setTolls(List<Toll> tolls) {
         checkTollOnPolyline(previousPolyline.getPoints(), tolls);
-        tollsList.clear();
-        tollsList.addAll(tolls);
-        adapter.notifyDataSetChanged();
     }
 
     public void checkTollOnPolyline(final List<LatLng> polyline, final List<Toll> tollList) {
-        Single.create(new SingleOnSubscribe<List<MarkerOptions>>() {
+        Single.create(new SingleOnSubscribe<List<TollCarrier>>() {
             @Override
-            public void subscribe(SingleEmitter<List<MarkerOptions>> e) throws Exception {
-                List<MarkerOptions> markerOptionses = new ArrayList<>();
+            public void subscribe(SingleEmitter<List<TollCarrier>> e) throws Exception {
+                totalPrice = 0;
+                List<TollCarrier> carriers = new ArrayList<>();
                 for (Toll toll : tollList) {
                     LatLng pos = new LatLng(toll.getLatitude(), toll.getLongitude());
                     if (PolyUtil.isLocationOnPath(pos, polyline, true, 100.0)) {
-                        markerOptionses.add(new MarkerOptions().icon(BitmapDescriptorFactory
-                                .defaultMarker(BitmapDescriptorFactory.HUE_AZURE)).position(pos));
+                        totalPrice += toll.getTwo_axle();
+                        carriers.add(new TollCarrier(toll, new MarkerOptions().title(toll.getName()).snippet(toll.getAddress()).icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_AZURE)).position(pos)));
                     }
                 }
-                e.onSuccess(markerOptionses);
+                e.onSuccess(carriers);
             }
         }).subscribeOn(Schedulers.computation())
                 .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(new Consumer<List<MarkerOptions>>() {
+                .subscribe(new Consumer<List<TollCarrier>>() {
                     @Override
-                    public void accept(List<MarkerOptions> markerOptions) throws Exception {
-                        for (MarkerOptions option : markerOptions) {
-                            mMap.addMarker(option);
+                    public void accept(List<TollCarrier> carriers) throws Exception {
+                        tollsList.clear();
+                        for (TollCarrier carrier : carriers) {
+                            tolls.put(mMap.addMarker(carrier.getMarkerOptions()).getId(), carrier.getToll());
+                            tollsList.add(carrier.getToll());
                         }
+                        adapter.notifyDataSetChanged();
+                        coordinatorLayout.setPadding(0, 0, 0, (int) Utility.convertDpToPixel(60, getActivity()));
+                        dragView.setVisibility(View.VISIBLE);
+                        slidingUpPanelLayout.setPanelHeight((int) Utility.convertDpToPixel(60, getActivity()));
+                        total.setText("Total:  ₹ " + Utility.formatFloat(totalPrice));
                     }
                 });
     }
@@ -321,7 +358,7 @@ public class DisplayMapFragment extends Fragment implements OnMapReadyCallback, 
 
         CameraPosition cameraPosition = new CameraPosition.Builder()
                 .target(new LatLng(location.getLatitude(), location.getLongitude()))      // Sets the center of the map to location user
-                .zoom(17)                   // Sets the zoom
+                .zoom(10)                   // Sets the zoom
                 .build();                   // Creates a CameraPosition from the builder
         mMap.animateCamera(CameraUpdateFactory.newCameraPosition(cameraPosition));
     }
@@ -337,7 +374,7 @@ public class DisplayMapFragment extends Fragment implements OnMapReadyCallback, 
         switch (permission) {
             case Manifest.permission.ACCESS_COARSE_LOCATION:
             case Manifest.permission.ACCESS_FINE_LOCATION:
-                if(zoomToLocationClick) {
+                if (zoomToLocationClick) {
                     locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 0, this);
                     locationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 0, 0, this);
                 } else {
@@ -383,5 +420,20 @@ public class DisplayMapFragment extends Fragment implements OnMapReadyCallback, 
                 .withPermissions(Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION)
                 .withListener(this)
                 .check();
+    }
+
+    public class NestedScrollableViewHelper extends ScrollableViewHelper {
+        public int getScrollableViewScrollPosition(View scrollableView, boolean isSlidingUp) {
+            if (tollList instanceof RecyclerView) {
+                if(isSlidingUp){
+                    return tollList.getScrollY();
+                } else {
+                    View child = tollList.getChildAt(0);
+                    return (child.getBottom() - (tollList.getHeight() + tollList.getScrollY()));
+                }
+            } else {
+                return 0;
+            }
+        }
     }
 }

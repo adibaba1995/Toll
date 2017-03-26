@@ -31,6 +31,7 @@
 
         <activity android:name=".presentation.view.activity.DirectionActivity" />
         <activity android:name=".presentation.view.activity.PickLocationActivity"/>
+        <activity android:name=".presentation.view.activity.TollInfoActivity" />
 
     </application>
 

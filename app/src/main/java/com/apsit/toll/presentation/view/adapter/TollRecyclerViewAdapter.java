@@ -7,10 +7,12 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.CompoundButton;
 import android.widget.TextView;
 
 import com.apsit.toll.R;
 import com.apsit.toll.data.network.pojo.toll.Toll;
+import com.apsit.toll.presentation.utility.Utility;
 
 import java.util.List;
 
@@ -26,6 +28,7 @@ public class TollRecyclerViewAdapter extends RecyclerView.Adapter<TollRecyclerVi
 
     private List<Toll> tollList;
     private LayoutInflater inflater;
+    private Callback callback;
 
     public TollRecyclerViewAdapter(List<Toll> tollList, Context context) {
         this.tollList = tollList;
@@ -45,8 +48,13 @@ public class TollRecyclerViewAdapter extends RecyclerView.Adapter<TollRecyclerVi
     @Override
     public void onBindViewHolder(TollRecyclerViewHolder holder, int position) {
         Toll toll = tollList.get(position);
+        holder.toll = toll;
         holder.name.setText(toll.getName());
-        holder.price.setText(toll.getTwo_axle());
+        holder.price.setText(Utility.formatFloat(toll.getTwo_axle()));
+    }
+
+    public void setCallback(Callback callback) {
+        this.callback = callback;
     }
 
     @Override
@@ -54,7 +62,9 @@ public class TollRecyclerViewAdapter extends RecyclerView.Adapter<TollRecyclerVi
         return tollList.size();
     }
 
-    public class TollRecyclerViewHolder extends RecyclerView.ViewHolder {
+    public class TollRecyclerViewHolder extends RecyclerView.ViewHolder implements CompoundButton.OnCheckedChangeListener {
+
+        Toll toll;
 
         @BindView(R.id.name)
         TextView name;
@@ -68,6 +78,21 @@ public class TollRecyclerViewAdapter extends RecyclerView.Adapter<TollRecyclerVi
         public TollRecyclerViewHolder(View itemView) {
             super(itemView);
             unbinder = ButterKnife.bind(this, itemView);
+            init();
         }
+
+        private void init() {
+            checkBox.setOnCheckedChangeListener(this);
+        }
+
+        @Override
+        public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+            if(callback != null)
+                callback.checkChanged(toll, isChecked);
+        }
+    }
+
+    public interface Callback {
+        void checkChanged(Toll toll, boolean isChecked);
     }
 }

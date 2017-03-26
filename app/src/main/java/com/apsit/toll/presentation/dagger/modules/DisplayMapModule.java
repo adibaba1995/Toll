@@ -44,7 +44,7 @@ public class DisplayMapModule {
     @Named("toll")
     Retrofit provideRetrofitTollInstance(Gson gson) {
         return new Retrofit.Builder()
-                .baseUrl("http://192.168.43.151/")
+                .baseUrl("http://192.168.0.102/")
                 .addConverterFactory(GsonConverterFactory.create(gson))
                 .addCallAdapterFactory(RxJava2CallAdapterFactory.create())
                 .build();
