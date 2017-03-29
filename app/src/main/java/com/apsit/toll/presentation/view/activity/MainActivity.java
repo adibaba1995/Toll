@@ -2,7 +2,9 @@ package com.apsit.toll.presentation.view.activity;
 
 import android.app.Fragment;
 import android.app.FragmentManager;
+import android.content.Intent;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.design.widget.NavigationView;
 import android.support.design.widget.TabLayout;
@@ -16,6 +18,7 @@ import android.view.MenuItem;
 import com.apsit.toll.R;
 import com.apsit.toll.presentation.view.adapter.MainViewPagerAdapter;
 import com.apsit.toll.presentation.view.fragment.DisplayMapFragment;
+import com.apsit.toll.presentation.view.fragment.OnTheGoFragment;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
@@ -25,7 +28,13 @@ import butterknife.Unbinder;
  * Created by adityathanekar on 16/03/17.
  */
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener {
+
+    public static final String EXTRA_FRAGMENT_POSITION = "com.apsit.toll.EXTRA_FRAGMENT_POSITION";
+
+    public static final int ON_THE_GO = 0;
+    public static final int TOLLS = 1;
+
 
     @BindView(R.id.drawer_layout)
     DrawerLayout drawerLayout;
@@ -66,6 +75,12 @@ public class MainActivity extends AppCompatActivity {
         );
         drawerLayout.addDrawerListener(drawerToggle);
         drawerToggle.syncState();
+        navigationView.setNavigationItemSelectedListener(this);
+
+        Intent intent = getIntent();
+        if(intent != null) {
+            showFragment(intent.getIntExtra(EXTRA_FRAGMENT_POSITION, -1));
+        }
     }
 
     public boolean isOptionItemSelected(MenuItem item) {
@@ -95,6 +110,37 @@ public class MainActivity extends AppCompatActivity {
         if(callback != null) {
             callback.backPressed();
         }
+    }
+
+    private final void showFragment(int position) {
+        FragmentManager fragmentManager = getFragmentManager();
+        switch (position) {
+            case ON_THE_GO:
+                fragmentManager.beginTransaction().replace(R.id.fragmentContainer, new OnTheGoFragment()).commit();
+                drawerLayout.closeDrawers();
+                break;
+        }
+    }
+
+    @Override
+    public boolean onNavigationItemSelected(@NonNull MenuItem item) {
+        FragmentManager fragmentManager = getFragmentManager();
+        switch (item.getItemId()) {
+            case R.id.tolls:
+                fragmentManager.beginTransaction().replace(R.id.fragmentContainer, new DisplayMapFragment()).commit();
+                drawerLayout.closeDrawers();
+                return true;
+            case R.id.account:
+                Intent intent = new Intent(this, LoginActivity.class);
+                startActivity(intent);
+                drawerLayout.closeDrawers();
+                return true;
+            case R.id.onthego:
+                fragmentManager.beginTransaction().replace(R.id.fragmentContainer, new OnTheGoFragment()).commit();
+                drawerLayout.closeDrawers();
+                return true;
+        }
+        return false;
     }
 
     public interface Callback {

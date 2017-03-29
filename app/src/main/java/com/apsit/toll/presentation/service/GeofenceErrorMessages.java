@@ -1,4 +1,4 @@
-package com.apsit.toll.service;
+package com.apsit.toll.presentation.service;
 
 import android.content.Context;
 import android.content.res.Resources;

@@ -1,6 +1,8 @@
 package com.apsit.toll.presentation.application;
 
 import android.app.Application;
+
+import com.apsit.toll.data.network.sync.TollSyncAdapter;
 import com.apsit.toll.presentation.dagger.components.ApplicationComponent;
 import com.apsit.toll.presentation.dagger.components.DaggerApplicationComponent;
 import com.apsit.toll.presentation.dagger.components.DirectionComponent;
@@ -34,6 +36,7 @@ public final class TollApplication extends Application {
 
         // Make this Realm the default
         Realm.setDefaultConfiguration(realmConfiguration);
+        TollSyncAdapter.initializeSyncAdapter(this);
     }
 
     public ApplicationComponent getApplicationComponent() {

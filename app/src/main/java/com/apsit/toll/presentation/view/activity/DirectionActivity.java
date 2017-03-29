@@ -14,13 +14,20 @@ import android.widget.TextView;
 
 import com.apsit.toll.R;
 import com.apsit.toll.data.network.pojo.autocomplete.Prediction;
+import com.apsit.toll.data.network.pojo.toll.Toll;
 import com.apsit.toll.presentation.application.TollApplication;
 import com.apsit.toll.presentation.presenter.DirectionPresenter;
+import com.apsit.toll.presentation.utility.Utility;
 import com.apsit.toll.presentation.view.DirectionSelectView;
+import com.apsit.toll.presentation.view.viewmodel.TollCarrier;
 import com.arlib.floatingsearchview.FloatingSearchView;
 import com.arlib.floatingsearchview.suggestions.model.SearchSuggestion;
+import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.MarkerOptions;
+import com.google.maps.android.PolyUtil;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 
@@ -29,6 +36,12 @@ import javax.inject.Inject;
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import butterknife.Unbinder;
+import io.reactivex.Single;
+import io.reactivex.SingleEmitter;
+import io.reactivex.SingleOnSubscribe;
+import io.reactivex.android.schedulers.AndroidSchedulers;
+import io.reactivex.functions.Consumer;
+import io.reactivex.schedulers.Schedulers;
 
 /**
  * Created by adityathanekar on 22/03/17.
@@ -55,6 +68,7 @@ public class DirectionActivity extends AppCompatActivity implements DirectionSel
 
     private boolean sourcedest;
     private LatLng sourcepos, destinationpos;
+    private String sourcestr, destinationstr;
 
     @Override
     protected void onResume() {
@@ -85,7 +99,8 @@ public class DirectionActivity extends AppCompatActivity implements DirectionSel
         source.setOnSearchListener(new FloatingSearchView.OnSearchListener() {
             @Override
             public void onSuggestionClicked(SearchSuggestion searchSuggestion) {
-                locationSelected(searchSuggestion.getBody());
+                sourcestr = searchSuggestion.getBody();
+                locationSelected();
             }
 
             @Override
@@ -121,7 +136,8 @@ public class DirectionActivity extends AppCompatActivity implements DirectionSel
         destination.setOnSearchListener(new FloatingSearchView.OnSearchListener() {
             @Override
             public void onSuggestionClicked(SearchSuggestion searchSuggestion) {
-                locationSelected(searchSuggestion.getBody());
+                destinationstr = searchSuggestion.getBody();
+                locationSelected();
             }
 
             @Override
@@ -148,26 +164,37 @@ public class DirectionActivity extends AppCompatActivity implements DirectionSel
         });
     }
 
-    private void locationSelected(String location) {
-        try {
-            Geocoder geocoder = new Geocoder(DirectionActivity.this, Locale.getDefault());
-            Address address = geocoder.getFromLocationName(location, 1).get(0);
-            if (address != null) {
-                if (sourcedest)
-                    sourcepos = new LatLng(address.getLatitude(), address.getLongitude());
-                else
-                    destinationpos = new LatLng(address.getLatitude(), address.getLongitude());
-                if (sourcepos != null && destinationpos != null) {
-                    Intent intent = new Intent();
-                    intent.putExtra(EXTRA_SOURCE_CO_ORDINATES, sourcepos);
-                    intent.putExtra(EXTRA_DESTINATION_CO_ORDINATES, destinationpos);
-                    setResult(RESULT_OK, intent);
-                    finish();
+    private void locationSelected() {
+
+        Single.create(new SingleOnSubscribe<Intent>() {
+            @Override
+            public void subscribe(SingleEmitter<Intent> e) throws Exception {
+                try {
+                    Geocoder geocoder = new Geocoder(DirectionActivity.this, Locale.getDefault());
+                    Address source = null, destination = null;
+                    if (sourcestr != null && destinationstr != null) {
+                        source = geocoder.getFromLocationName(sourcestr, 1).get(0);
+                        destination = geocoder.getFromLocationName(destinationstr, 1).get(0);
+                    }
+                    if (source != null && destination != null) {
+                        Intent intent = new Intent();
+                        intent.putExtra(EXTRA_SOURCE_CO_ORDINATES, new LatLng(source.getLatitude(), source.getLongitude()));
+                        intent.putExtra(EXTRA_DESTINATION_CO_ORDINATES, new LatLng(destination.getLatitude(), destination.getLongitude()));
+                        e.onSuccess(intent);
+                    }
+                } catch (Exception ex) {
+
                 }
             }
-        } catch (Exception e) {
-
-        }
+        }).subscribeOn(Schedulers.computation())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(new Consumer<Intent>() {
+                    @Override
+                    public void accept(Intent intent) throws Exception {
+                        setResult(RESULT_OK, intent);
+                        finish();
+                    }
+                });
     }
 
     @Override

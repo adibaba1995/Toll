@@ -2,18 +2,22 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android">
     <group android:checkableBehavior="single" android:id="@+id/main">
         <item
+            android:id="@+id/onthego"
+            android:icon="@drawable/onthego"
+            android:title="@string/onthegotoll" />
+        <item
             android:id="@+id/tolls"
             android:icon="@drawable/toll"
-            android:title="Tollbooths" />
+            android:title="@string/tollbooths" />
         <item
             android:id="@+id/paymenthistory"
             android:icon="@drawable/history"
-            android:title="Payment history" />
+            android:title="@string/payment_history" />
     </group>
     <group android:checkableBehavior="single" android:id="@+id/other">
         <item
-            android:id="@+id/logout"
-            android:icon="@drawable/logout"
-            android:title="Logout" />
+            android:id="@+id/account"
+            android:icon="@drawable/account"
+            android:title="@string/my_account" />
     </group>
 </menu>

@@ -36,4 +36,16 @@
     <string name="permission_rationale_message">This permission is needed for doing some fancy stuff so please, allow it!</string>
 
     <string name="ipsum">Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industrys standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book. It has survived not only five centuries, but also the leap into electronic typesetting, remaining essentially unchanged. It was popularised in the 1960s with the release of Letraset sheets containing Lorem Ipsum passages, and more recently with desktop publishing software like Aldus PageMaker including versions of Lorem Ipsum.</string>
+    <string name="payment_history">Payment history</string>
+    <string name="tollbooths">Tollbooths</string>
+    <string name="onthegotoll">Toll on the go</string>
+    <string name="my_account">My Account</string>
+
+
+
+    <string name="sync_account_type">apsit.com</string>
+    <string name="content_authority">com.apsit.toll</string>
+
+    <string name="verifying">We are trying to auto verify your number with an SMS sent to %1$s</string>
+    <string name="enter_otp">Please enter one time verification code sent to %1$s</string>
 </resources>

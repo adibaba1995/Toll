@@ -31,7 +31,7 @@ public class TollService {
     }
 
     public interface Toll {
-        @GET("/toll/tollinfo.php")
+        @GET("/tollinfo.php")
         Observable<List<com.apsit.toll.data.network.pojo.toll.Toll>> getTolls(@Query("min") String min, @Query("max") String max);
     }
 }

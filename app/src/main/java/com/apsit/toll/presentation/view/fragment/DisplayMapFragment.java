@@ -3,6 +3,7 @@ package com.apsit.toll.presentation.view.fragment;
 import android.Manifest;
 import android.annotation.TargetApi;
 import android.app.Fragment;
+import android.app.FragmentManager;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.Typeface;
@@ -44,6 +45,7 @@ import com.apsit.toll.presentation.view.viewmodel.TollCarrier;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
+import com.google.android.gms.maps.UiSettings;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.LatLng;
@@ -51,6 +53,7 @@ import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.model.Polyline;
 import com.google.android.gms.maps.model.PolylineOptions;
+import com.google.firebase.messaging.FirebaseMessaging;
 import com.google.maps.android.PolyUtil;
 import com.karumi.dexter.Dexter;
 import com.karumi.dexter.MultiplePermissionsReport;
@@ -169,7 +172,13 @@ public class DisplayMapFragment extends Fragment implements OnMapReadyCallback, 
                 slidingUpPanelLayout.setPanelState(SlidingUpPanelLayout.PanelState.COLLAPSED);
             }
         });
-        com.google.android.gms.maps.MapFragment mapFragment = (com.google.android.gms.maps.MapFragment) getChildFragmentManager()
+        FragmentManager fragmentManager = null;
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.LOLLIPOP){
+            fragmentManager = getChildFragmentManager();
+        } else{
+            fragmentManager = getFragmentManager();
+        }
+        com.google.android.gms.maps.MapFragment mapFragment = (com.google.android.gms.maps.MapFragment) fragmentManager
                 .findFragmentById(R.id.map);
         mapFragment.getMapAsync(this);
 
@@ -209,6 +218,7 @@ public class DisplayMapFragment extends Fragment implements OnMapReadyCallback, 
         });
         slidingUpPanelLayout.setPanelHeight(0);
         slidingUpPanelLayout.setScrollableViewHelper(new NestedScrollableViewHelper());
+        FirebaseMessaging.getInstance().subscribeToTopic("tolls");
     }
 
     @Override
@@ -231,6 +241,10 @@ public class DisplayMapFragment extends Fragment implements OnMapReadyCallback, 
                 startActivity(intent);
             }
         });
+        UiSettings settings = mMap.getUiSettings();
+        settings.setMapToolbarEnabled(false);
+        settings.setCompassEnabled(false);
+        settings.setMyLocationButtonEnabled(false);
         checkLocationPermission();
     }
 

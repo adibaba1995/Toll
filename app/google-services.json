@@ -1,0 +1,42 @@
+{
+  "project_info": {
+    "project_number": "1040825317137",
+    "firebase_url": "https://game-info-1041.firebaseio.com",
+    "project_id": "game-info-1041",
+    "storage_bucket": "game-info-1041.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1040825317137:android:9b55db1429d64676",
+        "android_client_info": {
+          "package_name": "com.apsit.toll"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "1040825317137-ndljumguvhr0rqqd8nvlqbhijie6m00d.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBjV99FLtVJw3teR_dNMlLbFmWxrPQVAzw"
+        }
+      ],
+      "services": {
+        "analytics_service": {
+          "status": 1
+        },
+        "appinvite_service": {
+          "status": 1,
+          "other_platform_oauth_client": []
+        },
+        "ads_service": {
+          "status": 2
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

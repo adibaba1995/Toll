@@ -6,6 +6,9 @@
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.READ_SYNC_SETTINGS"/>
+    <uses-permission android:name="android.permission.WRITE_SYNC_SETTINGS"/>
+    <uses-permission android:name="android.permission.AUTHENTICATE_ACCOUNTS"/>
 
     <application
         android:allowBackup="true"
@@ -29,9 +32,49 @@
 
         <!--<service android:name=".service.GeofenceIntentService"/>-->
 
-        <activity android:name=".presentation.view.activity.DirectionActivity" />
-        <activity android:name=".presentation.view.activity.PickLocationActivity"/>
-        <activity android:name=".presentation.view.activity.TollInfoActivity" />
+        <activity android:name=".presentation.view.activity.DirectionActivity" android:screenOrientation="portrait"/>
+        <activity android:name=".presentation.view.activity.PickLocationActivity" android:screenOrientation="portrait"/>
+        <activity android:name=".presentation.view.activity.TollInfoActivity" android:screenOrientation="portrait"/>
+        <activity android:name=".presentation.view.activity.LoginActivity" android:screenOrientation="portrait"/>
+        <activity android:name=".presentation.view.activity.SignUpActivity" android:screenOrientation="portrait"/>
+
+        <service android:name=".service.TollLookupService" />
+
+        <service
+            android:name=".data.network.service.SyncDataService">
+            <intent-filter>
+                <action android:name="com.google.firebase.MESSAGING_EVENT"/>
+            </intent-filter>
+        </service>
+
+        <provider
+            android:authorities="@string/content_authority"
+            android:name=".data.database.TollProvider"
+            android:exported="false"
+            android:syncable="true" />
+
+        <!-- SyncAdapter's dummy authentication service -->
+        <service android:name=".data.network.sync.TollAuthenticatorService">
+            <intent-filter>
+                <action android:name="android.accounts.AccountAuthenticator" />
+            </intent-filter>
+            <meta-data
+                android:name="android.accounts.AccountAuthenticator"
+                android:resource="@xml/authenticator" />
+        </service>
+
+        <!-- The SyncAdapter service -->
+        <service
+            android:name=".data.network.sync.TollSyncService"
+            android:exported="true"
+            >
+            <intent-filter>
+                <action android:name="android.content.SyncAdapter" />
+            </intent-filter>
+            <meta-data
+                android:name="android.content.SyncAdapter"
+                android:resource="@xml/toll_sync_adapter" />
+        </service>
 
     </application>
 

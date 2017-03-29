@@ -7,4 +7,6 @@
     <color name="mapGray">#ACACAC</color>
     <color name="purple">#7c4dfe</color>
     <color name="dimBg">#bf000000</color>
+
+    <color name="lightGrey">#dedede</color>
 </resources>

@@ -25,7 +25,7 @@ public class Toll implements Parcelable
 
     private double latitude;
 
-    private String LCV;
+    private double LCV;
 
     private double two_axle;
 
@@ -42,7 +42,7 @@ public class Toll implements Parcelable
         state = in.readString();
         longitude = in.readDouble();
         latitude = in.readDouble();
-        LCV = in.readString();
+        LCV = in.readDouble();
         two_axle = in.readDouble();
         country = in.readString();
     }
@@ -155,13 +155,11 @@ public class Toll implements Parcelable
         this.latitude = latitude;
     }
 
-    public String getLCV ()
-    {
+    public double getLCV() {
         return LCV;
     }
 
-    public void setLCV (String LCV)
-    {
+    public void setLCV(double LCV) {
         this.LCV = LCV;
     }
 
@@ -198,7 +196,7 @@ public class Toll implements Parcelable
         dest.writeString(state);
         dest.writeDouble(longitude);
         dest.writeDouble(latitude);
-        dest.writeString(LCV);
+        dest.writeDouble(LCV);
         dest.writeDouble(two_axle);
         dest.writeString(country);
     }
