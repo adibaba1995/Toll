@@ -25,7 +25,6 @@ import com.apsit.toll.R;
 import com.apsit.toll.data.network.pojo.toll.Toll;
 import com.apsit.toll.presentation.view.activity.MainActivity;
 import com.apsit.toll.service.Constant;
-import com.apsit.toll.service.Constants;
 import com.apsit.toll.service.TollLookupService;
 import com.apsit.toll.service.TollService;
 import com.google.android.gms.maps.GoogleMap;

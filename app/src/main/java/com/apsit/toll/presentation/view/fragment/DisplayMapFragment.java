@@ -23,6 +23,8 @@ import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
@@ -155,6 +157,11 @@ public class DisplayMapFragment extends Fragment implements OnMapReadyCallback, 
         unbinder = ButterKnife.bind(this, view);
         setHasOptionsMenu(true);
         init();
+    }
+
+    @Override
+    public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
+        inflater.inflate(R.menu.direction_menu, menu);
     }
 
     private void init() {

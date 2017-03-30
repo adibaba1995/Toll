@@ -76,6 +76,12 @@
                 android:resource="@xml/toll_sync_adapter" />
         </service>
 
+        <receiver android:name=".presentation.reciever.MessageBroadcastReciever">
+            <intent-filter>
+                <action android:name="android.provider.Telephony.SMS_RECEIVED"/>
+            </intent-filter>
+        </receiver>
+
     </application>
 
 </manifest>

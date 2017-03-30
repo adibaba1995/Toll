@@ -1,17 +1,26 @@
 package com.apsit.toll.presentation.view.fragment;
 
 import android.app.Fragment;
+import android.content.BroadcastReceiver;
+import android.content.Context;
+import android.content.Intent;
+import android.content.IntentFilter;
 import android.graphics.Typeface;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
+import android.support.v4.content.LocalBroadcastManager;
 import android.support.v7.widget.Toolbar;
+import android.telephony.SmsMessage;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.apsit.toll.R;
+import com.apsit.toll.presentation.reciever.MessageBroadcastReciever;
+import com.apsit.toll.presentation.reciever.SmsListener;
 import com.apsit.toll.presentation.view.activity.SignUpActivity;
 
 import butterknife.BindView;
@@ -62,6 +71,13 @@ public class VerifyOtpFragment extends Fragment implements View.OnClickListener 
         phone = arguments.getString(EXTRA_MOBILE);
         verifying.setText(getResources().getString(R.string.verifying, phone));
         manualCode.setOnClickListener(this);
+
+        MessageBroadcastReciever.bindListener(new SmsListener() {
+            @Override
+            public void messageReceived(String messageText) {
+                Toast.makeText(getActivity(),messageText, Toast.LENGTH_SHORT).show();
+            }
+        });
     }
 
     public static Fragment newInstance(String mobile) {
@@ -78,6 +94,16 @@ public class VerifyOtpFragment extends Fragment implements View.OnClickListener 
             case R.id.manualcode:
                 ((SignUpActivity) getActivity()).showManualOtpFragment(phone);
                 break;
+        }
+    }
+
+    private void checkMessage(String message) {
+        if(message != null) {
+            String arr[] = message.split(" ", 2);
+
+            String firstWord = arr[0];
+
+            Toast.makeText(getActivity(), firstWord, Toast.LENGTH_SHORT).show();
         }
     }
 }

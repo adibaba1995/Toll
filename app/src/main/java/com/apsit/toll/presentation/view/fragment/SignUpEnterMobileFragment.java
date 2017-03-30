@@ -78,7 +78,7 @@ public class SignUpEnterMobileFragment extends Fragment implements View.OnClickL
                 break;
             case R.id.signup:
                 if (isValidMobile(phone.getText().toString()))
-                    ((SignUpActivity) getActivity()).showVerifyOtpFragment(phone.getText().toString());
+                    ((SignUpActivity) getActivity()).showPasswordFragment(phone.getText().toString());
                 else
                     showSnackbar("Please enter a valid Mobile number");
                 break;

@@ -17,6 +17,9 @@ import com.apsit.toll.presentation.view.activity.MainActivity;
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import butterknife.Unbinder;
+import retrofit2.Call;
+import retrofit2.http.GET;
+import retrofit2.http.Query;
 
 /**
  * Created by adityathanekar on 29/03/17.
