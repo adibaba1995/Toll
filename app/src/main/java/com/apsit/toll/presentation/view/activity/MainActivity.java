@@ -3,7 +3,9 @@ package com.apsit.toll.presentation.view.activity;
 import android.app.Fragment;
 import android.app.FragmentManager;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.design.widget.NavigationView;
@@ -17,6 +19,7 @@ import android.view.MenuItem;
 
 import com.apsit.toll.R;
 import com.apsit.toll.presentation.view.adapter.MainViewPagerAdapter;
+import com.apsit.toll.presentation.view.fragment.AccountFragment;
 import com.apsit.toll.presentation.view.fragment.DisplayMapFragment;
 import com.apsit.toll.presentation.view.fragment.OnTheGoFragment;
 
@@ -31,6 +34,8 @@ import butterknife.Unbinder;
 public class MainActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener {
 
     public static final String EXTRA_FRAGMENT_POSITION = "com.apsit.toll.EXTRA_FRAGMENT_POSITION";
+    public static final int SIGN_IN_REQUEST_CODE = 101;
+    public static final int SIGN_UP_REQUEST_CODE = 102;
 
     public static final int ON_THE_GO = 0;
     public static final int TOLLS = 1;
@@ -122,6 +127,11 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         }
     }
 
+    private final void showFragment(Fragment fragment) {
+        FragmentManager fragmentManager = getFragmentManager();
+        fragmentManager.beginTransaction().replace(R.id.fragmentContainer, fragment).commit();
+    }
+
     @Override
     public boolean onNavigationItemSelected(@NonNull MenuItem item) {
         FragmentManager fragmentManager = getFragmentManager();
@@ -131,9 +141,15 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                 drawerLayout.closeDrawers();
                 return true;
             case R.id.account:
-                Intent intent = new Intent(this, LoginActivity.class);
-                startActivity(intent);
-                drawerLayout.closeDrawers();
+                SharedPreferences pref = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
+                String token = pref.getString("token", "");
+                if(token.equals("")) {
+                    Intent intent = new Intent(this, LoginActivity.class);
+                    startActivityForResult(intent, SIGN_IN_REQUEST_CODE);
+                    drawerLayout.closeDrawers();
+                } else {
+                    showFragment(new AccountFragment());
+                }
                 return true;
             case R.id.onthego:
                 fragmentManager.beginTransaction().replace(R.id.fragmentContainer, new OnTheGoFragment()).commit();
@@ -145,5 +161,24 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
     public interface Callback {
         void backPressed();
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        switch (requestCode) {
+            case SIGN_IN_REQUEST_CODE:
+                if(resultCode == RESULT_OK) {
+                    showFragment(new AccountFragment());
+                } else if(resultCode == LoginActivity.SIGN_UP_RESULT_CODE) {
+                    Intent intent = new Intent(this, SignUpActivity.class);
+                    startActivityForResult(intent, SIGN_UP_REQUEST_CODE);
+                }
+                break;
+            case SIGN_UP_REQUEST_CODE:
+                if(resultCode == SignUpActivity.SIGN_IN_RESULT_CODE) {
+
+                }
+                break;
+        }
     }
 }

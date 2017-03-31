@@ -1,10 +1,15 @@
 package com.apsit.toll.data.network.pojo.toll;
 
-import android.os.Parcel;
-import android.os.Parcelable;
+public class Toll {
 
-public class Toll implements Parcelable
-{
+    public static final int SELECT_TYPE_TWO_AXLE = 1;
+    public static final int SELECT_TYPE_TWO_AXLE_HEAVY = 2;
+    public static final int SELECT_TYPE_LCV = 3;
+    public static final int SELECT_TYPE_UPTO_THREE_AXLE = 4;
+    public static final int SELECT_TYPE_FOUR_AXLE_MORE = 5;
+
+    public static int selectType;
+
     private long id;
 
     private String place_id;
@@ -30,34 +35,6 @@ public class Toll implements Parcelable
     private double two_axle;
 
     private String country;
-
-    protected Toll(Parcel in) {
-        id = in.readLong();
-        place_id = in.readString();
-        upto_three_axle = in.readDouble();
-        four_axle_more = in.readDouble();
-        address = in.readString();
-        name = in.readString();
-        two_axle_heavy = in.readDouble();
-        state = in.readString();
-        longitude = in.readDouble();
-        latitude = in.readDouble();
-        LCV = in.readDouble();
-        two_axle = in.readDouble();
-        country = in.readString();
-    }
-
-    public static final Creator<Toll> CREATOR = new Creator<Toll>() {
-        @Override
-        public Toll createFromParcel(Parcel in) {
-            return new Toll(in);
-        }
-
-        @Override
-        public Toll[] newArray(int size) {
-            return new Toll[size];
-        }
-    };
 
     public long getId() {
         return id;
@@ -177,27 +154,5 @@ public class Toll implements Parcelable
     public String toString()
     {
         return "ClassPojo [id = "+id+", place_id = "+place_id+", upto_three_axle = "+upto_three_axle+", four_axle_more = "+four_axle_more+", address = "+address+", name = "+name+", two_axle_heavy = "+two_axle_heavy+", state = "+state+", longitude = "+longitude+", latitude = "+latitude+", LCV = "+LCV+", two_axle = "+two_axle+", country = "+country+"]";
-    }
-
-    @Override
-    public int describeContents() {
-        return 0;
-    }
-
-    @Override
-    public void writeToParcel(Parcel dest, int flags) {
-        dest.writeLong(id);
-        dest.writeString(place_id);
-        dest.writeDouble(upto_three_axle);
-        dest.writeDouble(four_axle_more);
-        dest.writeString(address);
-        dest.writeString(name);
-        dest.writeDouble(two_axle_heavy);
-        dest.writeString(state);
-        dest.writeDouble(longitude);
-        dest.writeDouble(latitude);
-        dest.writeDouble(LCV);
-        dest.writeDouble(two_axle);
-        dest.writeString(country);
     }
 }

@@ -50,7 +50,26 @@ public class TollRecyclerViewAdapter extends RecyclerView.Adapter<TollRecyclerVi
         Toll toll = tollList.get(position);
         holder.toll = toll;
         holder.name.setText(toll.getName());
-        holder.price.setText(Utility.formatFloat(toll.getTwo_axle()));
+        holder.price.setText(Utility.formatFloat(getPrice(toll)));
+        Log.d("Aditya", getPrice(toll) + "");
+    }
+
+    private double getPrice(Toll toll) {
+        switch (Toll.selectType) {
+            case Toll.SELECT_TYPE_TWO_AXLE:
+                Log.d("Aditya", toll.getTwo_axle() + " hello");
+                return toll.getTwo_axle();
+            case Toll.SELECT_TYPE_TWO_AXLE_HEAVY:
+                return toll.getTwo_axle_heavy();
+            case Toll.SELECT_TYPE_LCV:
+                return toll.getLCV();
+            case Toll.SELECT_TYPE_UPTO_THREE_AXLE:
+                return toll.getUpto_three_axle();
+            case Toll.SELECT_TYPE_FOUR_AXLE_MORE:
+                return toll.getFour_axle_more();
+            default:
+                return 0;
+        }
     }
 
     public void setCallback(Callback callback) {

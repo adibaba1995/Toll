@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <integer-array name="vehicle_type_icons">
+        <item>@drawable/two_axle</item>
+        <item>@drawable/two_axle_heavy</item>
+        <item>@drawable/lcv</item>
+        <item>@drawable/upto_three_axle</item>
+        <item>@drawable/four_axle_more</item>
+    </integer-array>
+
+    <string-array name="vehicle_types">
+        <item>Two axle</item>
+        <item>Two axle heavy</item>
+        <item>LCV</item>
+        <item>Upto three axle</item>
+        <item>Four axle more</item>
+    </string-array>
+</resources>

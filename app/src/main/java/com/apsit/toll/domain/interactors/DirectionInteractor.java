@@ -7,6 +7,8 @@ import com.apsit.toll.domain.executor.PostExecutionThread;
 import com.apsit.toll.domain.executor.ThreadExecutor;
 import com.apsit.toll.domain.model.DirectionData;
 
+import javax.inject.Inject;
+
 import io.reactivex.Observable;
 
 /**
@@ -17,6 +19,7 @@ public class DirectionInteractor extends UseCase<DirectionData> {
 
     private DirectionService service;
 
+    @Inject
     public DirectionInteractor(DirectionService service) {
         this.service = service;
     }

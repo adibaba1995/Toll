@@ -48,4 +48,6 @@
 
     <string name="verifying">We are trying to auto verify your number with an SMS sent to %1$s</string>
     <string name="enter_otp">Please enter one time verification code sent to %1$s</string>
+
+    <string name="vehicle_type_title">Select vehicle type</string>
 </resources>

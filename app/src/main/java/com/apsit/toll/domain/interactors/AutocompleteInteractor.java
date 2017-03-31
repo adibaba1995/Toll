@@ -2,6 +2,8 @@ package com.apsit.toll.domain.interactors;
 
 import com.apsit.toll.data.network.service.GooglePlaceAutocompleteService;
 
+import javax.inject.Inject;
+
 import io.reactivex.Observable;
 
 /**
@@ -12,6 +14,7 @@ public  class AutocompleteInteractor extends UseCase<String> {
 
     private GooglePlaceAutocompleteService service;
 
+    @Inject
     public AutocompleteInteractor(GooglePlaceAutocompleteService service) {
         this.service = service;
     }

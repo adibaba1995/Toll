@@ -34,6 +34,8 @@ import retrofit2.http.Query;
 
 public class SignUpActivity extends AppCompatActivity {
 
+    public static final int SIGN_IN_RESULT_CODE = 321;
+
     private SignUp service;
 
     private String phone, password;
@@ -96,8 +98,7 @@ public class SignUpActivity extends AppCompatActivity {
                     if (response.isSuccessful()) {
                         Register register = response.body();
                         if(register.getStatus() == Register.SUCCESS) {
-                            Intent intent = new Intent(SignUpActivity.this, LoginActivity.class);
-                            startActivity(intent);
+                            setResult(SIGN_IN_RESULT_CODE);
                             finish();
                         }
                     }

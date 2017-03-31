@@ -2,9 +2,11 @@ package com.apsit.toll.presentation.view.fragment;
 
 import android.Manifest;
 import android.annotation.TargetApi;
+import android.app.AlertDialog;
 import android.app.Fragment;
 import android.app.FragmentManager;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.Typeface;
 import android.location.Criteria;
@@ -22,12 +24,15 @@ import android.support.v7.widget.DividerItemDecoration;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ArrayAdapter;
+import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.apsit.toll.R;
@@ -43,7 +48,9 @@ import com.apsit.toll.presentation.view.activity.DirectionActivity;
 import com.apsit.toll.presentation.view.activity.MainActivity;
 import com.apsit.toll.presentation.view.activity.TollInfoActivity;
 import com.apsit.toll.presentation.view.adapter.TollRecyclerViewAdapter;
+import com.apsit.toll.presentation.view.adapter.VehicleTypeAdapter;
 import com.apsit.toll.presentation.view.viewmodel.TollCarrier;
+import com.apsit.toll.presentation.view.viewmodel.VehicleType;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
@@ -111,6 +118,8 @@ public class DisplayMapFragment extends Fragment implements OnMapReadyCallback, 
     View dragView;
     @BindView(R.id.total)
     TextView total;
+    @BindView(R.id.vehicle_type)
+    ImageView vehicleType;
 
     @Inject
     DisplayMapPresenter presenter;
@@ -125,7 +134,7 @@ public class DisplayMapFragment extends Fragment implements OnMapReadyCallback, 
     private LocationManager locationManager;
     private Criteria criteria;
     private String bestProvider;
-    private TollRecyclerViewAdapter adapter;
+    private TollRecyclerViewAdapter tollAdapter;
     private boolean zoomToLocationClick = false;
     private ArrayList<Toll> tollsList;
     private double totalPrice;
@@ -191,8 +200,8 @@ public class DisplayMapFragment extends Fragment implements OnMapReadyCallback, 
 
         directionfab.setOnClickListener(this);
         locationFab.setOnClickListener(this);
-        adapter = new TollRecyclerViewAdapter(tollsList, getActivity());
-        adapter.setCallback(new TollRecyclerViewAdapter.Callback() {
+        tollAdapter = new TollRecyclerViewAdapter(tollsList, getActivity());
+        tollAdapter.setCallback(new TollRecyclerViewAdapter.Callback() {
             @Override
             public void checkChanged(Toll toll, boolean isChecked) {
                 if (isChecked)
@@ -204,7 +213,7 @@ public class DisplayMapFragment extends Fragment implements OnMapReadyCallback, 
         });
         tollList.setLayoutManager(new LinearLayoutManager(getActivity()));
         tollList.addItemDecoration(new DividerItemDecoration(getActivity(), DividerItemDecoration.VERTICAL));
-        tollList.setAdapter(adapter);
+        tollList.setAdapter(tollAdapter);
         slidingUpPanelLayout.addPanelSlideListener(new SlidingUpPanelLayout.PanelSlideListener() {
             @Override
             public void onPanelSlide(View panel, float slideOffset) {
@@ -225,7 +234,81 @@ public class DisplayMapFragment extends Fragment implements OnMapReadyCallback, 
         });
         slidingUpPanelLayout.setPanelHeight(0);
         slidingUpPanelLayout.setScrollableViewHelper(new NestedScrollableViewHelper());
-        FirebaseMessaging.getInstance().subscribeToTopic("tolls");
+        vehicleType.setOnClickListener(this);
+    }
+
+    public void showVehicleType() {
+        int[] icons = new int[]{R.drawable.two_axle,R.drawable.two_axle_heavy,R.drawable.lcv, R.drawable.upto_three_axle, R.drawable.four_axle_more};
+        final String[] vehicleTypes = getActivity().getResources().getStringArray(R.array.vehicle_types);
+
+        List<VehicleType> vehicleList = new ArrayList<>();
+
+        for(int i = 0; i < icons.length; i++) {
+            vehicleList.add(new VehicleType(vehicleTypes[i], icons[i]));
+        }
+
+        AlertDialog.Builder builderSingle = new AlertDialog.Builder(getActivity());
+        final ArrayAdapter<VehicleType> adapter = new VehicleTypeAdapter(getActivity(), vehicleList);
+
+        builderSingle.setTitle(R.string.vehicle_type_title);
+
+        builderSingle.setNegativeButton("cancel", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                dialog.dismiss();
+            }
+        });
+
+        builderSingle.setAdapter(adapter, new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                switch (which) {
+                    case 0:
+                        Toll.selectType = Toll.SELECT_TYPE_TWO_AXLE;
+                        vehicleType.setImageResource(R.drawable.two_axle);
+                        break;
+                    case 1:
+                        Toll.selectType =Toll.SELECT_TYPE_TWO_AXLE_HEAVY;
+                        vehicleType.setImageResource(R.drawable.two_axle_heavy);
+                        break;
+                    case 2:
+                        Toll.selectType = Toll.SELECT_TYPE_LCV;
+                        vehicleType.setImageResource(R.drawable.lcv);
+                        break;
+                    case 3:
+                        Toll.selectType = Toll.SELECT_TYPE_UPTO_THREE_AXLE;
+                        vehicleType.setImageResource(R.drawable.upto_three_axle);
+                        break;
+                    case 4:
+                        Toll.selectType = Toll.SELECT_TYPE_FOUR_AXLE_MORE;
+                        vehicleType.setImageResource(R.drawable.four_axle_more);
+                        break;
+                }
+                tollAdapter.notifyDataSetChanged();
+                calculateTotal();
+            }
+        });
+        builderSingle.show();
+    }
+
+    private void calculateTotal() {
+        Single.create(new SingleOnSubscribe<Double>() {
+            @Override
+            public void subscribe(SingleEmitter<Double> e) throws Exception {
+                totalPrice = 0;
+                for (Toll toll : tollsList) {
+                    totalPrice += getPrice(toll);
+                }
+                e.onSuccess(totalPrice);
+            }
+        }).subscribeOn(Schedulers.computation())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(new Consumer<Double>() {
+                    @Override
+                    public void accept(Double price) throws Exception {
+                        total.setText("Total:  ₹ " + Utility.formatFloat(price));
+                    }
+                });
     }
 
     @Override
@@ -243,9 +326,9 @@ public class DisplayMapFragment extends Fragment implements OnMapReadyCallback, 
         mMap.setOnInfoWindowClickListener(new GoogleMap.OnInfoWindowClickListener() {
             @Override
             public void onInfoWindowClick(Marker marker) {
-                Intent intent = new Intent(getActivity(), TollInfoActivity.class);
-                intent.putExtra(TollInfoActivity.EXTRA_TOLL, tolls.get(marker.getId()));
-                startActivity(intent);
+//                Intent intent = new Intent(getActivity(), TollInfoActivity.class);
+//                intent.putExtra(TollInfoActivity.EXTRA_TOLL, tolls.get(marker.getId()));
+//                startActivity(intent);
             }
         });
         UiSettings settings = mMap.getUiSettings();
@@ -300,6 +383,9 @@ public class DisplayMapFragment extends Fragment implements OnMapReadyCallback, 
                 break;
             case R.id.locationfab:
                 getLocation();
+                break;
+            case R.id.vehicle_type:
+                showVehicleType();
                 break;
         }
     }
@@ -357,7 +443,8 @@ public class DisplayMapFragment extends Fragment implements OnMapReadyCallback, 
                             tolls.put(mMap.addMarker(carrier.getMarkerOptions()).getId(), carrier.getToll());
                             tollsList.add(carrier.getToll());
                         }
-                        adapter.notifyDataSetChanged();
+                        Toll.selectType = Toll.SELECT_TYPE_TWO_AXLE;
+                        tollAdapter.notifyDataSetChanged();
                         coordinatorLayout.setPadding(0, 0, 0, (int) Utility.convertDpToPixel(60, getActivity()));
                         dragView.setVisibility(View.VISIBLE);
                         slidingUpPanelLayout.setPanelHeight((int) Utility.convertDpToPixel(60, getActivity()));
@@ -455,6 +542,23 @@ public class DisplayMapFragment extends Fragment implements OnMapReadyCallback, 
             } else {
                 return 0;
             }
+        }
+    }
+
+    private double getPrice(Toll toll) {
+        switch (Toll.selectType) {
+            case Toll.SELECT_TYPE_TWO_AXLE:
+                return toll.getTwo_axle();
+            case Toll.SELECT_TYPE_TWO_AXLE_HEAVY:
+                return toll.getTwo_axle_heavy();
+            case Toll.SELECT_TYPE_LCV:
+                return toll.getLCV();
+            case Toll.SELECT_TYPE_UPTO_THREE_AXLE:
+                return toll.getUpto_three_axle();
+            case Toll.SELECT_TYPE_FOUR_AXLE_MORE:
+                return toll.getFour_axle_more();
+            default:
+                return 0;
         }
     }
 }
