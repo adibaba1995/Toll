@@ -50,27 +50,33 @@ public class TollRecyclerViewAdapter extends RecyclerView.Adapter<TollRecyclerVi
         Toll toll = tollList.get(position);
         holder.toll = toll;
         holder.name.setText(toll.getName());
-        holder.price.setText(Utility.formatFloat(getPrice(toll)));
-        Log.d("Aditya", getPrice(toll) + "");
-    }
-
-    private double getPrice(Toll toll) {
-        switch (Toll.selectType) {
-            case Toll.SELECT_TYPE_TWO_AXLE:
-                Log.d("Aditya", toll.getTwo_axle() + " hello");
-                return toll.getTwo_axle();
-            case Toll.SELECT_TYPE_TWO_AXLE_HEAVY:
-                return toll.getTwo_axle_heavy();
-            case Toll.SELECT_TYPE_LCV:
-                return toll.getLCV();
-            case Toll.SELECT_TYPE_UPTO_THREE_AXLE:
-                return toll.getUpto_three_axle();
-            case Toll.SELECT_TYPE_FOUR_AXLE_MORE:
-                return toll.getFour_axle_more();
-            default:
-                return 0;
+        holder.price.setText(Utility.formatFloat(toll.getPrice()));
+        if(toll.isPaid()) {
+            holder.checkBox.setVisibility(View.GONE);
+            holder.paid.setVisibility(View.VISIBLE);
+        } else {
+            holder.checkBox.setVisibility(View.VISIBLE);
+            holder.paid.setVisibility(View.GONE);
         }
     }
+
+//    private double getPrice(Toll toll) {
+//        switch (Toll.selectType) {
+//            case Toll.SELECT_TYPE_TWO_AXLE:
+//                Log.d("Aditya", toll.getTwo_axle() + " hello");
+//                return toll.getTwo_axle();
+//            case Toll.SELECT_TYPE_TWO_AXLE_HEAVY:
+//                return toll.getTwo_axle_heavy();
+//            case Toll.SELECT_TYPE_LCV:
+//                return toll.getLCV();
+//            case Toll.SELECT_TYPE_UPTO_THREE_AXLE:
+//                return toll.getUpto_three_axle();
+//            case Toll.SELECT_TYPE_FOUR_AXLE_MORE:
+//                return toll.getFour_axle_more();
+//            default:
+//                return 0;
+//        }
+//    }
 
     public void setCallback(Callback callback) {
         this.callback = callback;
@@ -81,7 +87,7 @@ public class TollRecyclerViewAdapter extends RecyclerView.Adapter<TollRecyclerVi
         return tollList.size();
     }
 
-    public class TollRecyclerViewHolder extends RecyclerView.ViewHolder implements CompoundButton.OnCheckedChangeListener {
+    public class TollRecyclerViewHolder extends RecyclerView.ViewHolder implements CompoundButton.OnCheckedChangeListener, View.OnClickListener {
 
         Toll toll;
 
@@ -91,12 +97,15 @@ public class TollRecyclerViewAdapter extends RecyclerView.Adapter<TollRecyclerVi
         TextView price;
         @BindView(R.id.check)
         AppCompatCheckBox checkBox;
+        @BindView(R.id.paid)
+        TextView paid;
 
         private Unbinder unbinder;
 
         public TollRecyclerViewHolder(View itemView) {
             super(itemView);
             unbinder = ButterKnife.bind(this, itemView);
+            itemView.setOnClickListener(this);
             init();
         }
 
@@ -106,12 +115,20 @@ public class TollRecyclerViewAdapter extends RecyclerView.Adapter<TollRecyclerVi
 
         @Override
         public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-            if(callback != null)
-                callback.checkChanged(toll, isChecked);
+            if(callback != null) {
+                toll.setSelected(isChecked);
+                callback.checkChanged(toll);
+            }
+        }
+
+        @Override
+        public void onClick(View v) {
+            callback.itemClicked(toll);
         }
     }
 
     public interface Callback {
-        void checkChanged(Toll toll, boolean isChecked);
+        void checkChanged(Toll toll);
+        void itemClicked(Toll toll);
     }
 }

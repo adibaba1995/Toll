@@ -8,6 +8,7 @@ import android.app.FragmentManager;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.graphics.Bitmap;
 import android.graphics.Typeface;
 import android.location.Criteria;
 import android.location.Location;
@@ -32,22 +33,29 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
+import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.apsit.toll.R;
+import com.apsit.toll.data.network.pojo.payment.Payment;
 import com.apsit.toll.data.network.pojo.toll.Toll;
+import com.apsit.toll.data.network.pojo.vehicle.Vehicle;
 import com.apsit.toll.domain.model.Direction;
 import com.apsit.toll.domain.model.DirectionData;
 import com.apsit.toll.domain.model.MinMaxLatLong;
+import com.apsit.toll.domain.model.PaymentDetails;
 import com.apsit.toll.presentation.application.TollApplication;
 import com.apsit.toll.presentation.presenter.DisplayMapPresenter;
 import com.apsit.toll.presentation.utility.Utility;
 import com.apsit.toll.presentation.view.DisplayMapView;
+import com.apsit.toll.presentation.view.activity.AddVehicleActivity;
 import com.apsit.toll.presentation.view.activity.DirectionActivity;
 import com.apsit.toll.presentation.view.activity.MainActivity;
-import com.apsit.toll.presentation.view.activity.TollInfoActivity;
+import com.apsit.toll.presentation.view.activity.WalletActivity;
 import com.apsit.toll.presentation.view.adapter.TollRecyclerViewAdapter;
+import com.apsit.toll.presentation.view.adapter.VehicleAdapter;
 import com.apsit.toll.presentation.view.adapter.VehicleTypeAdapter;
 import com.apsit.toll.presentation.view.viewmodel.TollCarrier;
 import com.apsit.toll.presentation.view.viewmodel.VehicleType;
@@ -62,8 +70,9 @@ import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.model.Polyline;
 import com.google.android.gms.maps.model.PolylineOptions;
-import com.google.firebase.messaging.FirebaseMessaging;
 import com.google.maps.android.PolyUtil;
+import com.google.zxing.BarcodeFormat;
+import com.journeyapps.barcodescanner.BarcodeEncoder;
 import com.karumi.dexter.Dexter;
 import com.karumi.dexter.MultiplePermissionsReport;
 import com.karumi.dexter.PermissionToken;
@@ -77,12 +86,14 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 import javax.inject.Inject;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import butterknife.Unbinder;
+import io.reactivex.Observable;
 import io.reactivex.Single;
 import io.reactivex.SingleEmitter;
 import io.reactivex.SingleOnSubscribe;
@@ -120,6 +131,8 @@ public class DisplayMapFragment extends Fragment implements OnMapReadyCallback, 
     TextView total;
     @BindView(R.id.vehicle_type)
     ImageView vehicleType;
+    @BindView(R.id.pay)
+    Button pay;
 
     @Inject
     DisplayMapPresenter presenter;
@@ -137,6 +150,7 @@ public class DisplayMapFragment extends Fragment implements OnMapReadyCallback, 
     private TollRecyclerViewAdapter tollAdapter;
     private boolean zoomToLocationClick = false;
     private ArrayList<Toll> tollsList;
+    private ArrayList<Vehicle> vehiclesList;
     private double totalPrice;
 
     @Override
@@ -149,9 +163,11 @@ public class DisplayMapFragment extends Fragment implements OnMapReadyCallback, 
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         ((TollApplication) getActivity().getApplication()).createDisplayMapComponent().inject(this);
+        setHasOptionsMenu(true);
         rectangles = new HashMap<>();
         tolls = new HashMap<>();
         tollsList = new ArrayList<>();
+        vehiclesList = new ArrayList<>();
     }
 
     @Nullable
@@ -203,12 +219,18 @@ public class DisplayMapFragment extends Fragment implements OnMapReadyCallback, 
         tollAdapter = new TollRecyclerViewAdapter(tollsList, getActivity());
         tollAdapter.setCallback(new TollRecyclerViewAdapter.Callback() {
             @Override
-            public void checkChanged(Toll toll, boolean isChecked) {
-                if (isChecked)
-                    totalPrice += toll.getTwo_axle();
+            public void checkChanged(Toll toll) {
+                if (toll.isSelected())
+                    totalPrice += toll.getPrice();
                 else
-                    totalPrice -= toll.getTwo_axle();
+                    totalPrice -= toll.getPrice();
                 total.setText("Total:  ₹ " + Utility.formatFloat(totalPrice));
+            }
+
+            @Override
+            public void itemClicked(Toll toll) {
+                if(toll.isPaid())
+                    showQrCodeDialog(toll);
             }
         });
         tollList.setLayoutManager(new LinearLayoutManager(getActivity()));
@@ -235,6 +257,51 @@ public class DisplayMapFragment extends Fragment implements OnMapReadyCallback, 
         slidingUpPanelLayout.setPanelHeight(0);
         slidingUpPanelLayout.setScrollableViewHelper(new NestedScrollableViewHelper());
         vehicleType.setOnClickListener(this);
+        pay.setOnClickListener(this);
+    }
+
+    public void showVehicles() {
+        AlertDialog.Builder builderSingle = new AlertDialog.Builder(getActivity());
+        VehicleAdapter vehicleAdapter = new VehicleAdapter(getActivity(), vehiclesList);
+
+        builderSingle.setNegativeButton("cancel", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                dialog.dismiss();
+            }
+        });
+
+        builderSingle.setAdapter(vehicleAdapter, new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                int size = vehiclesList.size();
+                if(size == 0)
+                    size = 1;
+                Log.d("Aditya", size + "");
+                if(which == size - 1) {
+                    Intent intent = new Intent(getActivity(), AddVehicleActivity.class);
+                    startActivity(intent);
+                }
+                dialog.dismiss();
+            }
+        });
+        builderSingle.show();
+    }
+
+    private void showQrCodeDialog(Toll toll) {
+        try {
+            AlertDialog.Builder dialogBuilder = new AlertDialog.Builder(getActivity());
+            LayoutInflater inflater = getActivity().getLayoutInflater();
+
+            View dialogView = inflater.inflate(R.layout.qr_image, null);
+
+            dialogBuilder.setView(dialogView);
+            ((ImageView)dialogView.findViewById(R.id.qrimage)).setImageBitmap(new BarcodeEncoder().encodeBitmap(String.valueOf(toll.getId()), BarcodeFormat.QR_CODE, Math.round(getResources().getDimension(R.dimen.qrcodesize)), Math.round(getResources().getDimension(R.dimen.qrcodesize))));
+            AlertDialog alertDialog = dialogBuilder.create();
+            alertDialog.show();
+        } catch(Exception e) {
+
+        }
     }
 
     public void showVehicleType() {
@@ -313,6 +380,15 @@ public class DisplayMapFragment extends Fragment implements OnMapReadyCallback, 
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
+        switch (item.getItemId()) {
+            case R.id.vehicle:
+                showVehicles();
+                return true;
+            case R.id.wallet:
+                Intent intent = new Intent(getActivity(), WalletActivity.class);
+                startActivity(intent);
+                return true;
+        }
         if (((MainActivity) getActivity()).isOptionItemSelected(item)) {
             return true;
         }
@@ -370,7 +446,6 @@ public class DisplayMapFragment extends Fragment implements OnMapReadyCallback, 
             previousPolyline.setZIndex(0);
         }
         previousPolyline = polyline;
-
         presenter.getTolls(rectangles.get(previousPolyline.getId()));
     }
 
@@ -387,7 +462,14 @@ public class DisplayMapFragment extends Fragment implements OnMapReadyCallback, 
             case R.id.vehicle_type:
                 showVehicleType();
                 break;
+            case R.id.pay:
+                makePayment();
+                break;
         }
+    }
+
+    private void makePayment() {
+        presenter.makePayment(new PaymentDetails("MH04AB9999", tollsList));
     }
 
     @Override
@@ -416,6 +498,36 @@ public class DisplayMapFragment extends Fragment implements OnMapReadyCallback, 
     @Override
     public void setTolls(List<Toll> tolls) {
         checkTollOnPolyline(previousPolyline.getPoints(), tolls);
+    }
+
+    @Override
+    public void showPaymentStatus(Payment payment) {
+        switch (payment.getStatus()) {
+            case 0:
+                setPaid();
+            case 1:
+        }
+    }
+
+    private void setPaid() {
+        Single.create(new SingleOnSubscribe<Object>() {
+            @Override
+            public void subscribe(SingleEmitter<Object> e) throws Exception {
+                for (Toll toll : tollsList) {
+                    if(toll.isSelected()) {
+                        toll.setPaid(true);
+                    }
+                }
+                e.onSuccess(new Object());
+            }
+        }).subscribeOn(Schedulers.computation())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(new Consumer<Object>() {
+                    @Override
+                    public void accept(Object carriers) throws Exception {
+                        tollAdapter.notifyDataSetChanged();
+                    }
+                });
     }
 
     public void checkTollOnPolyline(final List<LatLng> polyline, final List<Toll> tollList) {

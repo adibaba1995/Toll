@@ -27,10 +27,24 @@
         android:text="100"
         android:textAppearance="?android:attr/textAppearanceLarge" />
 
-    <android.support.v7.widget.AppCompatCheckBox
-        android:id="@+id/check"
+    <FrameLayout
         android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:checked="true"/>
+        android:layout_height="wrap_content">
+
+        <android.support.v7.widget.AppCompatCheckBox
+            android:id="@+id/check"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:checked="true"/>
+
+        <TextView
+            android:id="@+id/paid"
+            android:textAppearance="?android:attr/textAppearanceLarge"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="paid"
+            android:visibility="gone"/>
+
+    </FrameLayout>
 
 </LinearLayout>

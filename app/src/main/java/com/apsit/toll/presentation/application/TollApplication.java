@@ -3,11 +3,13 @@ package com.apsit.toll.presentation.application;
 import android.app.Application;
 
 import com.apsit.toll.data.network.sync.TollSyncAdapter;
+import com.apsit.toll.presentation.dagger.components.AddVehicleComponent;
 import com.apsit.toll.presentation.dagger.components.ApplicationComponent;
 import com.apsit.toll.presentation.dagger.components.DaggerApplicationComponent;
 import com.apsit.toll.presentation.dagger.components.DirectionComponent;
 import com.apsit.toll.presentation.dagger.components.DisplayMapComponent;
 import com.apsit.toll.presentation.dagger.components.SignInComponent;
+import com.apsit.toll.presentation.dagger.modules.AddVehicleModule;
 import com.apsit.toll.presentation.dagger.modules.ApplicationModule;
 import com.apsit.toll.presentation.dagger.modules.DirectionModule;
 import com.apsit.toll.presentation.dagger.modules.DisplayMapModule;
@@ -23,6 +25,7 @@ public final class TollApplication extends Application {
     private DirectionComponent directionComponent;
     private DisplayMapComponent displayMapComponent;
     private SignInComponent signInComponent;
+    private AddVehicleComponent addVehicleComponent;
 
     @Override
     public void onCreate() {
@@ -60,6 +63,15 @@ public final class TollApplication extends Application {
 
     public void releaseSignInComponent() {
         signInComponent = null;
+    }
+
+    public AddVehicleComponent createAddVehicleComponent() {
+        addVehicleComponent =  applicationComponent.plus(new AddVehicleModule());
+        return addVehicleComponent;
+    }
+
+    public void releaseAddVehicleComponent() {
+        addVehicleComponent = null;
     }
 
 }

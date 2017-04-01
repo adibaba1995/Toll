@@ -1,6 +1,7 @@
 package com.apsit.toll.presentation.dagger.components;
 
 import com.apsit.toll.presentation.application.TollApplication;
+import com.apsit.toll.presentation.dagger.modules.AddVehicleModule;
 import com.apsit.toll.presentation.dagger.modules.ApplicationModule;
 import com.apsit.toll.presentation.dagger.modules.DirectionModule;
 import com.apsit.toll.presentation.dagger.modules.DisplayMapModule;
@@ -20,4 +21,5 @@ public interface ApplicationComponent {
     DirectionComponent plus(DirectionModule module);
     DisplayMapComponent plus(DisplayMapModule module);
     SignInComponent plus(SignInModule module);
+    AddVehicleComponent plus(AddVehicleModule module);
 }

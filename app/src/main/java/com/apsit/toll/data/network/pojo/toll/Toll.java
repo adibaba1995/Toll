@@ -1,5 +1,7 @@
 package com.apsit.toll.data.network.pojo.toll;
 
+import android.util.Log;
+
 public class Toll {
 
     public static final int SELECT_TYPE_TWO_AXLE = 1;
@@ -7,6 +9,8 @@ public class Toll {
     public static final int SELECT_TYPE_LCV = 3;
     public static final int SELECT_TYPE_UPTO_THREE_AXLE = 4;
     public static final int SELECT_TYPE_FOUR_AXLE_MORE = 5;
+
+    private boolean selected, paid;
 
     public static int selectType;
 
@@ -35,6 +39,12 @@ public class Toll {
     private double two_axle;
 
     private String country;
+
+    public Toll() {
+        super();
+        selected = true;
+        paid = false;
+    }
 
     public long getId() {
         return id;
@@ -148,6 +158,40 @@ public class Toll {
     public void setCountry (String country)
     {
         this.country = country;
+    }
+
+    public boolean isSelected() {
+        return selected;
+    }
+
+    public void setSelected(boolean selected) {
+        this.selected = selected;
+    }
+
+    public boolean isPaid() {
+        return paid;
+    }
+
+    public void setPaid(boolean paid) {
+        this.paid = paid;
+    }
+
+    public double getPrice() {
+        switch (selectType) {
+            case Toll.SELECT_TYPE_TWO_AXLE:
+                return getTwo_axle();
+            case Toll.SELECT_TYPE_TWO_AXLE_HEAVY:
+                return getTwo_axle_heavy();
+            case Toll.SELECT_TYPE_LCV:
+                return getLCV();
+            case Toll.SELECT_TYPE_UPTO_THREE_AXLE:
+
+                return getUpto_three_axle();
+            case Toll.SELECT_TYPE_FOUR_AXLE_MORE:
+                return getFour_axle_more();
+            default:
+                return 0;
+        }
     }
 
     @Override

@@ -1,11 +1,13 @@
 package com.apsit.toll.presentation.presenter;
 
 import com.apsit.toll.data.network.pojo.autocomplete.Addresses;
+import com.apsit.toll.data.network.pojo.payment.Payment;
 import com.apsit.toll.data.network.pojo.toll.Toll;
 import com.apsit.toll.domain.interactors.UseCase;
 import com.apsit.toll.domain.model.Direction;
 import com.apsit.toll.domain.model.DirectionData;
 import com.apsit.toll.domain.model.MinMaxLatLong;
+import com.apsit.toll.domain.model.PaymentDetails;
 import com.apsit.toll.presentation.view.DirectionSelectView;
 import com.apsit.toll.presentation.view.DisplayMapView;
 
@@ -21,12 +23,13 @@ import io.reactivex.functions.Consumer;
 
 public class DisplayMapPresenter extends BasePresenter<DisplayMapView> {
 
-    private UseCase directionUseCase, tollUseCase;
+    private UseCase directionUseCase, tollUseCase, paymentUseCase;
 
     @Inject
-    public DisplayMapPresenter(UseCase directionUseCase, UseCase tollUseCase) {
+    public DisplayMapPresenter(UseCase directionUseCase, UseCase tollUseCase, UseCase paymentUseCase) {
         this.directionUseCase = directionUseCase;
         this.tollUseCase = tollUseCase;
+        this.paymentUseCase = paymentUseCase;
     }
 
     public void getPath(DirectionData data) {
@@ -35,6 +38,10 @@ public class DisplayMapPresenter extends BasePresenter<DisplayMapView> {
 
     public void getTolls(MinMaxLatLong data) {
         tollUseCase.executeWithInput(new TollObservable(), data);
+    }
+
+    public void makePayment(PaymentDetails paymentDetails) {
+        paymentUseCase.executeWithInput(new PaymentObservable(), paymentDetails);
     }
 
     private final class DirectionObservable implements Consumer<List<Direction>> {
@@ -54,6 +61,16 @@ public class DisplayMapPresenter extends BasePresenter<DisplayMapView> {
             DisplayMapView view = getView().get();
             if(view != null)
                 view.setTolls(tolls);
+        }
+    }
+
+    private final class PaymentObservable implements Consumer<Payment> {
+
+        @Override
+        public void accept(Payment payment) throws Exception {
+            DisplayMapView view = getView().get();
+            if(view != null)
+                view.showPaymentStatus(payment);
         }
     }
 }

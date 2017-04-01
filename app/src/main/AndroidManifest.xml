@@ -30,13 +30,13 @@
             </intent-filter>
         </activity>
 
-        <!--<service android:name=".service.GeofenceIntentService"/>-->
-
         <activity android:name=".presentation.view.activity.DirectionActivity" android:screenOrientation="portrait"/>
         <activity android:name=".presentation.view.activity.PickLocationActivity" android:screenOrientation="portrait"/>
         <activity android:name=".presentation.view.activity.TollInfoActivity" android:screenOrientation="portrait"/>
         <activity android:name=".presentation.view.activity.LoginActivity" android:screenOrientation="portrait"/>
         <activity android:name=".presentation.view.activity.SignUpActivity" android:screenOrientation="portrait"/>
+        <activity android:name=".presentation.view.activity.AddVehicleActivity" android:screenOrientation="portrait"/>
+        <activity android:name=".presentation.view.activity.WalletActivity" android:screenOrientation="portrait"/>
 
         <service android:name=".service.TollLookupService" />
 

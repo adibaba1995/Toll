@@ -4,9 +4,11 @@ import android.content.Context;
 
 import com.apsit.toll.data.network.service.DirectionService;
 import com.apsit.toll.data.network.service.GooglePlaceAutocompleteService;
+import com.apsit.toll.data.network.service.PaymentService;
 import com.apsit.toll.data.network.service.TollService;
 import com.apsit.toll.domain.interactors.AutocompleteInteractor;
 import com.apsit.toll.domain.interactors.DirectionInteractor;
+import com.apsit.toll.domain.interactors.PaymentInteractor;
 import com.apsit.toll.domain.interactors.TollInteractor;
 import com.apsit.toll.domain.interactors.UseCase;
 import com.apsit.toll.presentation.dagger.scopes.FragmentScope;
@@ -64,6 +66,12 @@ public class DisplayMapModule {
 
     @Provides
     @FragmentScope
+    PaymentService providePaymentService(@Named("toll") Retrofit instance, Context context) {
+        return new PaymentService(instance, context);
+    }
+
+    @Provides
+    @FragmentScope
     @Named("directionUsecase")
     UseCase provideDirectionInteractor(DirectionService service) {
         return new DirectionInteractor(service);
@@ -78,7 +86,14 @@ public class DisplayMapModule {
 
     @Provides
     @FragmentScope
-    DisplayMapPresenter provideDisplayMapPresenter(@Named("directionUsecase") UseCase directionUseCase,@Named("tollUsecase") UseCase tollUseCase) {
-        return new DisplayMapPresenter(directionUseCase, tollUseCase);
+    @Named("paymentUsecase")
+    UseCase providePaymentInteractor(PaymentService service) {
+        return new PaymentInteractor(service);
+    }
+
+    @Provides
+    @FragmentScope
+    DisplayMapPresenter provideDisplayMapPresenter(@Named("directionUsecase") UseCase directionUseCase,@Named("tollUsecase") UseCase tollUseCase, @Named("paymentUsecase") UseCase paymentUseCase) {
+        return new DisplayMapPresenter(directionUseCase, tollUseCase, paymentUseCase);
     }
 }
