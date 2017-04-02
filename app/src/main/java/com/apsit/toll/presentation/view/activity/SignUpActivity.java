@@ -2,23 +2,18 @@ package com.apsit.toll.presentation.view.activity;
 
 import android.app.Fragment;
 import android.app.FragmentManager;
-import android.content.Intent;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
 
 import com.apsit.toll.R;
 import com.apsit.toll.data.network.pojo.register.Register;
-import com.apsit.toll.data.network.pojo.toll.Toll;
 import com.apsit.toll.presentation.view.fragment.ManualOtpFragment;
-import com.apsit.toll.presentation.view.fragment.PasswordFragment;
+import com.apsit.toll.presentation.view.fragment.UserDetailsFragment;
 import com.apsit.toll.presentation.view.fragment.SignUpEnterMobileFragment;
 import com.apsit.toll.presentation.view.fragment.VerifyOtpFragment;
-import com.apsit.toll.service.TollService;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-
-import java.util.List;
 
 import retrofit2.Call;
 import retrofit2.Callback;
@@ -38,7 +33,7 @@ public class SignUpActivity extends AppCompatActivity {
 
     private SignUp service;
 
-    private String phone, password;
+    private String phone, first, last, password;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -70,7 +65,7 @@ public class SignUpActivity extends AppCompatActivity {
 
     public void showPasswordFragment(String mobile) {
         this.phone = mobile;
-        swapFragment(new PasswordFragment());
+        swapFragment(new UserDetailsFragment());
     }
 
     public void showVerifyOtpFragment(String mobile) {
@@ -89,10 +84,12 @@ public class SignUpActivity extends AppCompatActivity {
     }
 
 
-    public void completeSignUp(String password) {
+    public void completeSignUp(String first, String last, String password) {
         this.password = password;
+        this.first = first;
+        this.last = last;
         if (phone != null && password != null)
-            service.register(phone, password).enqueue(new Callback<Register>() {
+            service.register(phone, first, last, password).enqueue(new Callback<Register>() {
                 @Override
                 public void onResponse(Call<Register> call, Response<Register> response) {
                     if (response.isSuccessful()) {
@@ -113,6 +110,6 @@ public class SignUpActivity extends AppCompatActivity {
 
     public interface SignUp {
         @GET("/register.php")
-        Call<Register> register(@Query("phone_no") String phone, @Query("password") String password);
+        Call<Register> register(@Query("mobile") String phone, @Query("first") String first, @Query("last") String last, @Query("password") String password);
     }
 }

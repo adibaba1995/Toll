@@ -20,19 +20,23 @@ import butterknife.Unbinder;
  * Created by adityathanekar on 30/03/17.
  */
 
-public class PasswordFragment extends Fragment implements View.OnClickListener {
+public class UserDetailsFragment extends Fragment implements View.OnClickListener {
 
     @BindView(R.id.cont)
     Button cont;
     @BindView(R.id.password)
     EditText password;
+    @BindView(R.id.first)
+    EditText first;
+    @BindView(R.id.last)
+    EditText last;
 
     private Unbinder unbinder;
 
     @Nullable
     @Override
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, Bundle savedInstanceState) {
-        return inflater.inflate(R.layout.fragment_password, container, false);
+        return inflater.inflate(R.layout.fragment_user_details, container, false);
     }
 
     @Override
@@ -50,7 +54,8 @@ public class PasswordFragment extends Fragment implements View.OnClickListener {
     public void onClick(View v) {
         switch (v.getId()) {
             case R.id.cont:
-                ((SignUpActivity)getActivity()).completeSignUp(password.getText().toString());
+                ((SignUpActivity)getActivity()).completeSignUp(first.getText().toString(), last.getText().toString(),password.getText().toString());
+                break;
         }
     }
 }

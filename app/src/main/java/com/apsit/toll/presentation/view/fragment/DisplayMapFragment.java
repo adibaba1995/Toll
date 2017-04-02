@@ -384,7 +384,7 @@ public class DisplayMapFragment extends Fragment implements OnMapReadyCallback, 
     }
 
     private void makePayment() {
-        presenter.makePayment(new PaymentDetails("MH04AB9999", tollsList));
+        presenter.makePayment(new PaymentDetails(selectedVehicle.getNumber(), tollsList));
     }
 
     @Override
