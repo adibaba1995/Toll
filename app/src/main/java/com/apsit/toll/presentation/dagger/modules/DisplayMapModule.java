@@ -6,8 +6,10 @@ import com.apsit.toll.data.network.service.DirectionService;
 import com.apsit.toll.data.network.service.GooglePlaceAutocompleteService;
 import com.apsit.toll.data.network.service.PaymentService;
 import com.apsit.toll.data.network.service.TollService;
+import com.apsit.toll.data.storage.GetVehicleService;
 import com.apsit.toll.domain.interactors.AutocompleteInteractor;
 import com.apsit.toll.domain.interactors.DirectionInteractor;
+import com.apsit.toll.domain.interactors.GetVehiclesInteractor;
 import com.apsit.toll.domain.interactors.PaymentInteractor;
 import com.apsit.toll.domain.interactors.TollInteractor;
 import com.apsit.toll.domain.interactors.UseCase;
@@ -72,9 +74,22 @@ public class DisplayMapModule {
 
     @Provides
     @FragmentScope
+    GetVehicleService provideGetVehiclesService() {
+        return new GetVehicleService();
+    }
+
+    @Provides
+    @FragmentScope
     @Named("directionUsecase")
     UseCase provideDirectionInteractor(DirectionService service) {
         return new DirectionInteractor(service);
+    }
+
+    @Provides
+    @FragmentScope
+    @Named("getVehiclesUsecase")
+    UseCase provideGetVehiclesInteractor(GetVehicleService service) {
+        return new GetVehiclesInteractor(service);
     }
 
     @Provides
@@ -93,7 +108,7 @@ public class DisplayMapModule {
 
     @Provides
     @FragmentScope
-    DisplayMapPresenter provideDisplayMapPresenter(@Named("directionUsecase") UseCase directionUseCase,@Named("tollUsecase") UseCase tollUseCase, @Named("paymentUsecase") UseCase paymentUseCase) {
-        return new DisplayMapPresenter(directionUseCase, tollUseCase, paymentUseCase);
+    DisplayMapPresenter provideDisplayMapPresenter(@Named("directionUsecase") UseCase directionUseCase,@Named("tollUsecase") UseCase tollUseCase, @Named("paymentUsecase") UseCase paymentUseCase, @Named("getVehiclesUsecase") UseCase getVehiclesUseCase) {
+        return new DisplayMapPresenter(directionUseCase, tollUseCase, paymentUseCase, getVehiclesUseCase);
     }
 }

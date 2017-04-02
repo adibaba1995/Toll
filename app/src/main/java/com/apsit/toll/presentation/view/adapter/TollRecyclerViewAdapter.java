@@ -7,6 +7,7 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
 import android.widget.CompoundButton;
 import android.widget.TextView;
 
@@ -53,10 +54,10 @@ public class TollRecyclerViewAdapter extends RecyclerView.Adapter<TollRecyclerVi
         holder.price.setText(Utility.formatFloat(toll.getPrice()));
         if(toll.isPaid()) {
             holder.checkBox.setVisibility(View.GONE);
-            holder.paid.setVisibility(View.VISIBLE);
+            holder.showqr.setVisibility(View.VISIBLE);
         } else {
             holder.checkBox.setVisibility(View.VISIBLE);
-            holder.paid.setVisibility(View.GONE);
+            holder.showqr.setVisibility(View.GONE);
         }
     }
 
@@ -97,20 +98,20 @@ public class TollRecyclerViewAdapter extends RecyclerView.Adapter<TollRecyclerVi
         TextView price;
         @BindView(R.id.check)
         AppCompatCheckBox checkBox;
-        @BindView(R.id.paid)
-        TextView paid;
+        @BindView(R.id.showqr)
+        Button showqr;
 
         private Unbinder unbinder;
 
         public TollRecyclerViewHolder(View itemView) {
             super(itemView);
             unbinder = ButterKnife.bind(this, itemView);
-            itemView.setOnClickListener(this);
             init();
         }
 
         private void init() {
             checkBox.setOnCheckedChangeListener(this);
+            showqr.setOnClickListener(this);
         }
 
         @Override

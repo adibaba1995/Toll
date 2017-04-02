@@ -8,4 +8,5 @@ import com.apsit.toll.data.network.pojo.vehicle.Vehicle;
 
 public interface AddVehicleView extends BaseView {
     void showVehicleDetails(Vehicle vehicle);
+    void showAddVehicleSuccess();
 }

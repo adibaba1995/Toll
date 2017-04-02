@@ -3,6 +3,7 @@ package com.apsit.toll.presentation.presenter;
 import com.apsit.toll.data.network.pojo.autocomplete.Addresses;
 import com.apsit.toll.data.network.pojo.payment.Payment;
 import com.apsit.toll.data.network.pojo.toll.Toll;
+import com.apsit.toll.data.network.pojo.vehicle.Vehicle;
 import com.apsit.toll.domain.interactors.UseCase;
 import com.apsit.toll.domain.model.Direction;
 import com.apsit.toll.domain.model.DirectionData;
@@ -23,13 +24,14 @@ import io.reactivex.functions.Consumer;
 
 public class DisplayMapPresenter extends BasePresenter<DisplayMapView> {
 
-    private UseCase directionUseCase, tollUseCase, paymentUseCase;
+    private UseCase directionUseCase, tollUseCase, paymentUseCase, vehicleUseCase;
 
     @Inject
-    public DisplayMapPresenter(UseCase directionUseCase, UseCase tollUseCase, UseCase paymentUseCase) {
+    public DisplayMapPresenter(UseCase directionUseCase, UseCase tollUseCase, UseCase paymentUseCase, UseCase vehicleUseCase) {
         this.directionUseCase = directionUseCase;
         this.tollUseCase = tollUseCase;
         this.paymentUseCase = paymentUseCase;
+        this.vehicleUseCase = vehicleUseCase;
     }
 
     public void getPath(DirectionData data) {
@@ -42,6 +44,10 @@ public class DisplayMapPresenter extends BasePresenter<DisplayMapView> {
 
     public void makePayment(PaymentDetails paymentDetails) {
         paymentUseCase.executeWithInput(new PaymentObservable(), paymentDetails);
+    }
+
+    public void getVehicles() {
+        vehicleUseCase.execute(new GetVehiclesObservable());
     }
 
     private final class DirectionObservable implements Consumer<List<Direction>> {
@@ -71,6 +77,16 @@ public class DisplayMapPresenter extends BasePresenter<DisplayMapView> {
             DisplayMapView view = getView().get();
             if(view != null)
                 view.showPaymentStatus(payment);
+        }
+    }
+
+    private final class GetVehiclesObservable implements Consumer<List<Vehicle>> {
+
+        @Override
+        public void accept(List<Vehicle> vehicles) throws Exception {
+            DisplayMapView view = getView().get();
+            if(view != null)
+                view.showVehicles(vehicles);
         }
     }
 }

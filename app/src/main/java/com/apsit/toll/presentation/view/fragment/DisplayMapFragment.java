@@ -150,8 +150,9 @@ public class DisplayMapFragment extends Fragment implements OnMapReadyCallback, 
     private TollRecyclerViewAdapter tollAdapter;
     private boolean zoomToLocationClick = false;
     private ArrayList<Toll> tollsList;
-    private ArrayList<Vehicle> vehiclesList;
+
     private double totalPrice;
+    private Vehicle selectedVehicle;
 
     @Override
     public void onResume() {
@@ -167,7 +168,6 @@ public class DisplayMapFragment extends Fragment implements OnMapReadyCallback, 
         rectangles = new HashMap<>();
         tolls = new HashMap<>();
         tollsList = new ArrayList<>();
-        vehiclesList = new ArrayList<>();
     }
 
     @Nullable
@@ -260,34 +260,6 @@ public class DisplayMapFragment extends Fragment implements OnMapReadyCallback, 
         pay.setOnClickListener(this);
     }
 
-    public void showVehicles() {
-        AlertDialog.Builder builderSingle = new AlertDialog.Builder(getActivity());
-        VehicleAdapter vehicleAdapter = new VehicleAdapter(getActivity(), vehiclesList);
-
-        builderSingle.setNegativeButton("cancel", new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialog, int which) {
-                dialog.dismiss();
-            }
-        });
-
-        builderSingle.setAdapter(vehicleAdapter, new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialog, int which) {
-                int size = vehiclesList.size();
-                if(size == 0)
-                    size = 1;
-                Log.d("Aditya", size + "");
-                if(which == size - 1) {
-                    Intent intent = new Intent(getActivity(), AddVehicleActivity.class);
-                    startActivity(intent);
-                }
-                dialog.dismiss();
-            }
-        });
-        builderSingle.show();
-    }
-
     private void showQrCodeDialog(Toll toll) {
         try {
             AlertDialog.Builder dialogBuilder = new AlertDialog.Builder(getActivity());
@@ -302,60 +274,6 @@ public class DisplayMapFragment extends Fragment implements OnMapReadyCallback, 
         } catch(Exception e) {
 
         }
-    }
-
-    public void showVehicleType() {
-        int[] icons = new int[]{R.drawable.two_axle,R.drawable.two_axle_heavy,R.drawable.lcv, R.drawable.upto_three_axle, R.drawable.four_axle_more};
-        final String[] vehicleTypes = getActivity().getResources().getStringArray(R.array.vehicle_types);
-
-        List<VehicleType> vehicleList = new ArrayList<>();
-
-        for(int i = 0; i < icons.length; i++) {
-            vehicleList.add(new VehicleType(vehicleTypes[i], icons[i]));
-        }
-
-        AlertDialog.Builder builderSingle = new AlertDialog.Builder(getActivity());
-        final ArrayAdapter<VehicleType> adapter = new VehicleTypeAdapter(getActivity(), vehicleList);
-
-        builderSingle.setTitle(R.string.vehicle_type_title);
-
-        builderSingle.setNegativeButton("cancel", new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialog, int which) {
-                dialog.dismiss();
-            }
-        });
-
-        builderSingle.setAdapter(adapter, new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialog, int which) {
-                switch (which) {
-                    case 0:
-                        Toll.selectType = Toll.SELECT_TYPE_TWO_AXLE;
-                        vehicleType.setImageResource(R.drawable.two_axle);
-                        break;
-                    case 1:
-                        Toll.selectType =Toll.SELECT_TYPE_TWO_AXLE_HEAVY;
-                        vehicleType.setImageResource(R.drawable.two_axle_heavy);
-                        break;
-                    case 2:
-                        Toll.selectType = Toll.SELECT_TYPE_LCV;
-                        vehicleType.setImageResource(R.drawable.lcv);
-                        break;
-                    case 3:
-                        Toll.selectType = Toll.SELECT_TYPE_UPTO_THREE_AXLE;
-                        vehicleType.setImageResource(R.drawable.upto_three_axle);
-                        break;
-                    case 4:
-                        Toll.selectType = Toll.SELECT_TYPE_FOUR_AXLE_MORE;
-                        vehicleType.setImageResource(R.drawable.four_axle_more);
-                        break;
-                }
-                tollAdapter.notifyDataSetChanged();
-                calculateTotal();
-            }
-        });
-        builderSingle.show();
     }
 
     private void calculateTotal() {
@@ -381,9 +299,6 @@ public class DisplayMapFragment extends Fragment implements OnMapReadyCallback, 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
-            case R.id.vehicle:
-                showVehicles();
-                return true;
             case R.id.wallet:
                 Intent intent = new Intent(getActivity(), WalletActivity.class);
                 startActivity(intent);
@@ -460,7 +375,7 @@ public class DisplayMapFragment extends Fragment implements OnMapReadyCallback, 
                 getLocation();
                 break;
             case R.id.vehicle_type:
-                showVehicleType();
+                presenter.getVehicles();
                 break;
             case R.id.pay:
                 makePayment();
@@ -507,6 +422,40 @@ public class DisplayMapFragment extends Fragment implements OnMapReadyCallback, 
                 setPaid();
             case 1:
         }
+    }
+
+    @Override
+    public void showVehicles(final List<Vehicle> vehicles) {
+        AlertDialog.Builder builderSingle = new AlertDialog.Builder(getActivity());
+        VehicleAdapter vehicleAdapter = new VehicleAdapter(getActivity(), vehicles);
+
+        builderSingle.setNegativeButton("cancel", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                dialog.dismiss();
+            }
+        });
+
+        builderSingle.setAdapter(vehicleAdapter, new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                int size = vehicles.size();
+                if(size == 0)
+                    size = 1;
+                if(which == size - 1) {
+                    Intent intent = new Intent(getActivity(), AddVehicleActivity.class);
+                    startActivity(intent);
+                } else {
+                    selectedVehicle = vehicles.get(which);
+                    Toll.selectType = selectedVehicle.getType();
+                    vehicleType.setImageResource(Utility.getVehicleIcon(selectedVehicle.getType()));
+                    calculateTotal();
+                    tollAdapter.notifyDataSetChanged();
+                }
+                dialog.dismiss();
+            }
+        });
+        builderSingle.show();
     }
 
     private void setPaid() {

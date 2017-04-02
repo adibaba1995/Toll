@@ -43,7 +43,7 @@ public class VehicleTypeAdapter extends ArrayAdapter<VehicleType> {
         if (rowview==null) {
 
             holder = new ViewHolder();
-            rowview = inflater.inflate(R.layout.vehicle_type_item, null, false);
+            rowview = inflater.inflate(R.layout.vehicle_item, null, false);
 
             holder.name = (TextView) rowview.findViewById(R.id.title);
             holder.icon = (ImageView) rowview.findViewById(R.id.icon);

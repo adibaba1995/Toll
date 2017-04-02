@@ -1,10 +1,12 @@
 package com.apsit.toll.data.network.pojo.vehicle;
 
+import io.realm.RealmObject;
+
 /**
  * Created by adityathanekar on 31/03/17.
  */
 
-public class Vehicle
+public class Vehicle extends RealmObject
 {
     private String color;
 
@@ -12,7 +14,7 @@ public class Vehicle
 
     private String number;
 
-    private String type;
+    private int type;
 
     private String customer_id;
 
@@ -48,13 +50,11 @@ public class Vehicle
         this.number = number;
     }
 
-    public String getType ()
-    {
+    public int getType() {
         return type;
     }
 
-    public void setType (String type)
-    {
+    public void setType(int type) {
         this.type = type;
     }
 

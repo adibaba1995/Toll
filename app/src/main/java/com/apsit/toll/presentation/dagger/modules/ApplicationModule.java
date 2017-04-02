@@ -7,6 +7,7 @@ import javax.inject.Singleton;
 
 import dagger.Module;
 import dagger.Provides;
+import io.realm.Realm;
 
 /**
  * Created by adityathanekar on 15/06/16.
@@ -25,6 +26,11 @@ public class ApplicationModule {
     @Singleton
     public Context provideContext() {
         return application;
+    }
+
+    @Provides
+    Realm provideRealm() {
+        return Realm.getDefaultInstance();
     }
 
 }

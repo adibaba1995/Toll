@@ -40,48 +40,6 @@
 
         <service android:name=".service.TollLookupService" />
 
-        <service
-            android:name=".data.network.service.SyncDataService">
-            <intent-filter>
-                <action android:name="com.google.firebase.MESSAGING_EVENT"/>
-            </intent-filter>
-        </service>
-
-        <provider
-            android:authorities="@string/content_authority"
-            android:name=".data.database.TollProvider"
-            android:exported="false"
-            android:syncable="true" />
-
-        <!-- SyncAdapter's dummy authentication service -->
-        <service android:name=".data.network.sync.TollAuthenticatorService">
-            <intent-filter>
-                <action android:name="android.accounts.AccountAuthenticator" />
-            </intent-filter>
-            <meta-data
-                android:name="android.accounts.AccountAuthenticator"
-                android:resource="@xml/authenticator" />
-        </service>
-
-        <!-- The SyncAdapter service -->
-        <service
-            android:name=".data.network.sync.TollSyncService"
-            android:exported="true"
-            >
-            <intent-filter>
-                <action android:name="android.content.SyncAdapter" />
-            </intent-filter>
-            <meta-data
-                android:name="android.content.SyncAdapter"
-                android:resource="@xml/toll_sync_adapter" />
-        </service>
-
-        <receiver android:name=".presentation.reciever.MessageBroadcastReciever">
-            <intent-filter>
-                <action android:name="android.provider.Telephony.SMS_RECEIVED"/>
-            </intent-filter>
-        </receiver>
-
     </application>
 
 </manifest>

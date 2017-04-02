@@ -6,6 +6,7 @@ import android.content.res.TypedArray;
 import android.util.DisplayMetrics;
 
 import com.apsit.toll.R;
+import com.apsit.toll.data.network.pojo.toll.Toll;
 
 /**
  * Created by adityathanekar on 01/07/16.
@@ -41,5 +42,22 @@ public class Utility {
             return String.format("%d",(long)d);
         else
             return String.format("%s",d);
+    }
+
+    public static int getVehicleIcon(int type) {
+        switch (type) {
+            case Toll.SELECT_TYPE_TWO_AXLE:
+                return R.drawable.two_axle;
+            case Toll.SELECT_TYPE_TWO_AXLE_HEAVY:
+                return R.drawable.two_axle_heavy;
+            case Toll.SELECT_TYPE_LCV:
+                return R.drawable.lcv;
+            case Toll.SELECT_TYPE_UPTO_THREE_AXLE:
+                return R.drawable.upto_three_axle;
+            case Toll.SELECT_TYPE_FOUR_AXLE_MORE:
+                return R.drawable.four_axle_more;
+            default:
+                return -1;
+        }
     }
 }

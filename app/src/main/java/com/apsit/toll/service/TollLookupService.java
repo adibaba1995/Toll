@@ -87,6 +87,7 @@ public class TollLookupService extends Service implements LocationListener, Resu
                 .addConnectionCallbacks(new GoogleApiClient.ConnectionCallbacks() {
                     @Override
                     public void onConnected(@Nullable Bundle bundle) {
+                        Log.d("Aditya", "Connection successful");
                         startLocationService();
                     }
 
@@ -171,6 +172,7 @@ public class TollLookupService extends Service implements LocationListener, Resu
             stopForeground(true);
             stopSelf();
         } else if (intent.getAction().equals(ACTION_GEOFENCE)) {
+            Log.d("Aditya", "Geofence");
             GeofencingEvent geofencingEvent = GeofencingEvent.fromIntent(intent);
             if (geofencingEvent.hasError()) {
                 String errorMessage = GeofenceErrorMessages.getErrorString(this,
@@ -199,7 +201,7 @@ public class TollLookupService extends Service implements LocationListener, Resu
 
                 // Send notification and log the transition details.
                 sendNotification(geofenceTransitionDetails);
-                Log.i("Aditya", geofenceTransitionDetails);
+                Log.d("Aditya", geofenceTransitionDetails);
             } else {
                 // Log the error.
                 Log.e("Aditya", getString(R.string.geofence_transition_invalid_type,
@@ -220,6 +222,7 @@ public class TollLookupService extends Service implements LocationListener, Resu
         sendLocationBroadcast(new LatLng(location.getLatitude(), location.getLongitude()));
         if (inner != null) {
             if (location.getLatitude() > inner.northeast.latitude || location.getLatitude() < inner.southwest.latitude || location.getLongitude() > inner.northeast.longitude || location.getLongitude() < inner.southwest.longitude) {
+                Log.d("Aditya", "Inner is not null");
                 getGeofences(new LatLng(location.getLatitude(), location.getLongitude()));
             }
         } else {
@@ -300,11 +303,12 @@ public class TollLookupService extends Service implements LocationListener, Resu
                                 .build());
                     }
 
-                    LocationServices.GeofencingApi.addGeofences(
-                            mGoogleApiClient,
-                            getGeofencingRequest(geofences),
-                            getGeofencePendingIntent()
-                    ).setResultCallback(TollLookupService.this);
+                    if (geofences.size() > 0)
+                        LocationServices.GeofencingApi.addGeofences(
+                                mGoogleApiClient,
+                                getGeofencingRequest(geofences),
+                                getGeofencePendingIntent()
+                        ).setResultCallback(TollLookupService.this);
                 }
             }
 
@@ -343,7 +347,7 @@ public class TollLookupService extends Service implements LocationListener, Resu
 
     @Override
     public void onResult(@NonNull Status status) {
-        if(status.isSuccess()) {
+        if (status.isSuccess()) {
             Toast.makeText(this, "Geofence set", Toast.LENGTH_SHORT).show();
         }
     }

@@ -40,11 +40,14 @@ public class AddVehicleActivity extends AppCompatActivity implements AddVehicleV
     TextView company;
     @BindView(R.id.container)
     View container;
+    @BindView(R.id.add)
+    Button add;
 
     @Inject
     AddVehiclePresenter presenter;
 
     private Unbinder unbinder;
+    private Vehicle vehicle;
 
     @Override
     protected void onResume() {
@@ -63,6 +66,7 @@ public class AddVehicleActivity extends AppCompatActivity implements AddVehicleV
 
     private void init() {
         submit.setOnClickListener(this);
+        add.setOnClickListener(this);
     }
 
     @Override
@@ -70,17 +74,25 @@ public class AddVehicleActivity extends AppCompatActivity implements AddVehicleV
         switch (v.getId()) {
             case R.id.submit:
                 presenter.getVehicleDetails(vehicleNumber.getText().toString());
-                Log.d("Aditya", "vehicle details");
+                break;
+            case R.id.add:
+                presenter.addVehicle(vehicle);
                 break;
         }
     }
 
     @Override
     public void showVehicleDetails(Vehicle vehicle) {
+        this.vehicle = vehicle;
         container.setVisibility(View.VISIBLE);
         submit.setVisibility(View.GONE);
         modelName.setText(vehicle.getModel_name());
         company.setText(vehicle.getCompany());
         color.setText(vehicle.getColor());
+    }
+
+    @Override
+    public void showAddVehicleSuccess() {
+        finish();
     }
 }
